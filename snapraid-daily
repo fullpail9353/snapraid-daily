@@ -95,6 +95,18 @@ is_number() {
   fi
 }
 
+# Function to check for a valid scrub number
+is_valid_scrub_percent_number() {
+  local number="$1"
+
+  # Matches: 0.0 to 99.9, 100.0 only
+  if [[ "$number" =~ ^(100(\.0)?|([0-9]{1,2}(\.[0-9])?))$ ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 # Check if a command is available
 is_installed() {
   command -v "${1}" &>"/dev/null"
@@ -405,10 +417,8 @@ read_config_file() {
   if [ -z "$scrub_percent" ]; then
     echo "WARNING: scrub_percent is not defined snapraid-daily.conf - Using 8%"
     scrub_percent=8
-  elif ! is_number "$scrub_percent"; then
-    error "scrub-percent value:" "$scrub_percent" "is invalid - It should be a number >=0"
-  elif [ $scrub_percent -gt 100 ] || [ $scrub_percent -le 0 ]; then
-    error "scrub_percent should be a number greater than 0 & less than 100 - Exiting"
+  elif ! is_valid_scrub_percent_number "$scrub_percent"; then
+    error "scrub-percent value:" "$scrub_percent" "is invalid - It should be a number between 0.0 and 100.0 with Up to One Decimal Place - Exiting"
   fi
 
   # Check for a Scrub Age, default to 21 days, sanity check its not negative
