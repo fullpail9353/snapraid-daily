@@ -538,7 +538,7 @@ check_dependencies() {
   if ! is_installed mktemp; then error "mktemp command not found in \$PATH - Exiting..."; fi
 
   # Check if Mutt is Installed, otherwise disable emails
-  if ! is_installed mutt &>/dev/null; then
+  if ! is_installed mutt; then
     echo "WARNING: mutt command not found in \$PATH - No emails will be sent"
     enable_emails=0
   fi
@@ -1341,7 +1341,7 @@ generate_smart_report() {
     log_to_email "##############################"
     # Check if the script is running as root, if not see if Sudo is installed...
     if [ $UID != 0 ]; then
-      if ! is_installed sudo >/dev/null; then
+      if ! is_installed sudo; then
         log_to_email "ERROR: Script not ran as root and sudo is not installed"
         log_to_email "sudo is required to generate the SMART report if not running the script"
         log_to_email "as root."
@@ -1363,7 +1363,7 @@ spin_down_hdd_disks() {
     log_to_email "##############################"
     # Check if the Script is running as root, if not see if Sudo is installed
     if [ $UID != 0 ]; then
-      if ! is_installed sudo >/dev/null; then
+      if ! is_installed sudo; then
         log_to_email "ERROR: Script not ran as root and sudo is not installed"
         log_to_email "sudo is required to spin down the disks if not running the script"
         log_to_email "as root."
