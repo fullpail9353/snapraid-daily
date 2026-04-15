@@ -10,7 +10,10 @@
 	dh $@
 
 # Override dh_install_systemd to not start/enable unit files
-# and not do anything on upgrades...
+# and not do anything on upgrades. Require this here as restarting
+# timers can automatically trigger the units again which is NOT
+# wanted. Should be OK as the Unit/Timer files are very UNLIKELY
+# to change...
 override_dh_installsystemd:
 	dh_installsystemd --no-enable \
 	                  --no-start \
