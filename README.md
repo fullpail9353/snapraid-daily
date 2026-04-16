@@ -6,7 +6,7 @@ In built email notifications with monitoring of the number of deletes/moves/upda
 
 Customisable through the use of external hooks. See some examples here:    
 * https://github.com/zoot101/snapraid-daily-hooks
-* Hooks are provided above for **Apprise** (which supports sending notifications to Telegram, ntfy, Discord, Slack and many more services), **Healthchecks.io**, manage a list of services with systemd, or to issue simple commands at the start and end.
+* Hooks are provided above for **Apprise** (which supports sending notifications to Telegram, ntfy, Discord, Slack and many more services), **Healthchecks.io**, Stop/Start a list of services with Systemd, Stop/Start a list of Docker Containers or to issue simple commands at the start and end.
 
 # Introduction 
 
