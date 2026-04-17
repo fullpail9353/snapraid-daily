@@ -5,8 +5,20 @@ Simple Bash Script to automate all essential SnapRAID functions on Linux.
 In built email notifications with monitoring of the number of deletes/moves/updates.
 
 Customisable through the use of external hooks. See some examples here:    
-* https://github.com/zoot101/snapraid-daily-hooks
-* Hooks are provided above for **Apprise** (which supports sending notifications to Telegram, ntfy, Discord, Slack and many more services), **Healthchecks.io**, Stop/Start a list of services with Systemd, Stop/Start a list of Docker Containers or to issue simple commands at the start and end.
+
+* [https://github.com/zoot101/snapraid-daily-hooks](https://github.com/zoot101/snapraid-daily-hooks)
+
+Hook scripts are provided above for:
+
+* **Apprise** which supports notifications to Telegram, ntfy and many more services
+* **Healthchecks.io** - [https://healthchecks.io](https://healthchecks.io)
+* Start and Stop Services with Systemd or Docker Containers
+
+Here is an example notification using the Apprise Hook:
+
+<p> 
+  <img src="/imgs/ntfy_sample.png" height="600">
+</p>
 
 # Introduction 
 
@@ -33,7 +45,7 @@ To install the script, if on Debian or a Debian-based distro like Ubuntu or Mint
 
 * Download the latest Debian package from the release page [HERE](https://github.com/zoot101/snapraid-daily/releases)
 * Install it like so - all dependencies should be installed automatically. Answer the prompts for a user and group if you want to run the script as a different user other than root. If you are okay with running it as root, enter "root" at the prompts or leave them blank.
-  - `sudo apt install ./snapraid-daily_1.5.0-1_amd64.deb`
+  - `sudo apt install ./snapraid-daily_1.6.1-1_amd64.deb`
 * Edit the config file that was installed at **/etc/snapraid-daily.conf** to your needs. The comments included should help, check out the installed manual entry for the config file like so, or read on below. Note that the script should also run out of the box with the default config file (or with no config file), but will not send any emails.
   - `man snapraid-daily.conf`
 * Call the script directly to test it out. See the [Usage](#usage) section below.
@@ -44,8 +56,8 @@ To install the script, if on Debian or a Debian-based distro like Ubuntu or Mint
 To install the script on a non-Debian based distro, install the script manually like so:
 
 * Download the latest "Source Code" archive from the release page [HERE](https://github.com/zoot101/snapraid-daily/releases) and extract it.
-  - `unzip snapraid-daily-1.5.2.zip` or `tar xvf snapraid-daily-1.5.2.tar.gz`
-  - `cd snapraid-daily-1.5.2`
+  - `unzip snapraid-daily-1.6.1.zip` or `tar xvf snapraid-daily-1.6.1.tar.gz`
+  - `cd snapraid-daily-1.6.1`
 * Place the main script in /usr/bin and make it executable. For Example:
   - `chmod +x snapraid-daily && sudo cp snapraid-daily /usr/bin/`
 * Install the manual entries (optional)
@@ -250,7 +262,7 @@ Install the package like so:
 
 ```bash
 sudo apt update
-sudo apt install ./snapraid-daily_1.5.2-1_amd64.deb
+sudo apt install ./snapraid-daily_1.6.1-1_amd64.deb
 ```
 
 During installation, one will be prompted for a user and group to run the script as a service via systemd.
@@ -276,8 +288,8 @@ so its recommended to stick with what is on the releases page instead.
 
 ```bash
 # Extract the Archive
-unzip snapraid-daily-1.5.2.zip       # For the zip file
-tar xvf snapraid-daily-1.5.2.tar.gz  # For the tar.gz file
+unzip snapraid-daily-1.6.1.zip       # For the zip file
+tar xvf snapraid-daily-1.6.1.tar.gz  # For the tar.gz file
 
 cd snapraid-daily
 
@@ -1461,10 +1473,10 @@ Again download the latest source code archive from the releases page [HERE](http
 sudo apt install debhelper dh-exec debconf
 
 # Extract the archive 
-unzip snapraid-daily-1.5.2.zip      # For the Zip File
-tar xvf snapraid-daily-1.5.2.tar.gz # For the Tar File
+unzip snapraid-daily-1.6.1.zip      # For the Zip File
+tar xvf snapraid-daily-1.6.1.tar.gz # For the Tar File
 
-cd snapraid-daily-1.5.2
+cd snapraid-daily-1.6.1
 
 # Create a source archive using dh_make, answer "yes" to
 # the prompts. The default maintainer details are your username and
