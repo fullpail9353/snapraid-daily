@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.2"
+version="1.6.1"
 
 ###################################################
 # VARIABLES
@@ -110,6 +110,37 @@ is_valid_scrub_percent_number() {
 # Check if a command is available
 is_installed() {
   command -v "${1}" &>"/dev/null"
+}
+
+# Check content files are writable
+check_content_files_exist() {
+
+  # Read the main Configuration file line-by-line
+  while IFS= read -r line; do
+
+    # Strip leading whitespace, trailing comment if present & Skip empty lines and comments
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%%#*}"
+    if [[ -z "$line" || "$line" == \#* ]]; then continue; fi
+  
+    # Only process lines starting with "content"
+    if [[ "$line" == content[[:space:]]* ]]; then
+
+      # Remove Content & Trim Leading & Trailing Whitespaces
+      content_file="${line#content}"
+      content_file="${content_file#"${content_file%%[![:space:]]*}"}"
+      content_file="${content_file%"${content_file##*[![:space:]]}"}"
+  
+      # Check if the content file exists - if not exit & notify the user
+      if [ ! -w "${content_file}" ]; then
+        log_to_email_time "ERROR: SnapRAID Content File: ${content_file} in ${snapraid_config_file_path} not found/writable"
+        log_to_email ""
+        notify_of_warning "SnapRAID-DAILY: Content File(s) Error"
+        clean_up_logfiles
+        exit "$error_code"
+      fi
+    fi
+  done < "${snapraid_config_file_path}"
 }
 
 ###################################################
@@ -370,12 +401,6 @@ read_config_file() {
     fi
   elif [ ! -r "${snapraid_config_file_path}" ]; then
     error "snapraid_config_file_path:" "${snapraid_config_file_path}" "does not exist or is not readable - Exiting"
-  fi
-
-  # Find the 1st Snapraid Content File Location, and check if it can be accessed
-  content_file=$(grep -m 1 -Ew "^content|^ *content" "${snapraid_config_file_path}" | sed 's/^[^\/]*\//\//;s/"//g;s/ *$//;s/\t*$//' ) 
-  if [ ! -w "${content_file}" ]; then
-    error "1st defined SnapRAID Content File in" "${snapraid_config_file_path}" "not found/writable - Could be a Permissions problem?"
   fi
 
   # Check for a Valid muttrc file and email address. If not found, disable the email functionality
@@ -812,6 +837,10 @@ initial_status_check() {
   log_to_email "##############################"
   log_to_email "# SnapRAID-DAILY: Initial Status Check"
   log_to_email "##############################"
+
+  # Check all Content Files are found
+  check_content_files_exist
+  log_to_email_time "All Content Files found"
   log_to_email_time "Checking current status..."
 
   # Call snapraid status
