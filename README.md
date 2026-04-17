@@ -11,7 +11,6 @@ Customisable through the use of external hooks. See some examples here:
 Hook scripts are provided above for:
 
 * **Apprise** which supports notifications to Telegram, ntfy and many more services
-* **Healthchecks.io** - [https://healthchecks.io](https://healthchecks.io)
 * Start and Stop Services with Systemd or Docker Containers
 
 Here is an example notification using the Apprise Hook to a Self-Hosted **ntfy** server:
