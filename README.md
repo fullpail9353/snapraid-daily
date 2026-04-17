@@ -1087,6 +1087,22 @@ As before, if any variables are required to be passed into the notification hook
 export var1="whatever"
 ```
 
+If one wishes to create their own hook script, it is very easy - a simple example is shown below.
+
+```
+#!/bin/bash
+
+case "$1" in
+  start)
+    # do stuff here
+  ;;
+
+  end)
+    # do stuff here
+  ;;
+esac
+```
+
 An example config file that uses the start,end and notification hooks can be found here:
 
 * [https://github.com/zoot101/snapraid-daily/blob/main/docs/examples/snapraid-daily.conf](https://github.com/zoot101/snapraid-daily/blob/main/docs/examples/snapraid-daily.conf)
