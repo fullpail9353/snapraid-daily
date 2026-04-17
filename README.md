@@ -8,7 +8,7 @@ Customisable through the use of external hooks. See some examples here:
 
 * [https://github.com/zoot101/snapraid-daily-hooks](https://github.com/zoot101/snapraid-daily-hooks)
 
-Hook scripts are provided above for:
+Hook scripts are provided above for the following and more.
 
 * **Apprise** which supports notifications to Telegram, ntfy and many more services
 * Start and Stop Services with Systemd or Docker Containers
