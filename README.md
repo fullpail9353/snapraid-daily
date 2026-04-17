@@ -14,7 +14,7 @@ Hook scripts are provided above for:
 * **Healthchecks.io** - [https://healthchecks.io](https://healthchecks.io)
 * Start and Stop Services with Systemd or Docker Containers
 
-Here is an example notification using the Apprise Hook:
+Here is an example notification using the Apprise Hook to a Self-Hosted **ntfy** server:
 
 <p> 
   <img src="/imgs/ntfy_sample.png" height="600">
