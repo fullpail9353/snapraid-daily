@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.1"
+version="1.6.2~beta1"
 
 ###################################################
 # VARIABLES
@@ -179,9 +179,9 @@ generate_logfiles() {
 snapraid_status_cmd() {
   # Call Snapraid Status using the "-l" option
   if [ $quiet_option == 1 ]; then
-    "${snapraid_binary_path}" -c "${snapraid_config_file_path}" -l "${status_command_logfile}" -qq status | tee $status_logfile &> /dev/null
+    "${snapraid_binary_path}" -c "${snapraid_config_file_path}" -l "${status_command_logfile}" -qq status &> /dev/null
   else
-    "${snapraid_binary_path}" -c "${snapraid_config_file_path}" -l "${status_command_logfile}" -qq status | tee $status_logfile
+    "${snapraid_binary_path}" -c "${snapraid_config_file_path}" -l "${status_command_logfile}" -qq status
   fi
 }
 
@@ -339,6 +339,7 @@ unset_config_vars() {
   scrub_percent=
   scrub_age=
   disable_emails_on_success=
+  include_diff_in_email=
   force_zero=
   force_empty=
   force_uuid=
@@ -463,6 +464,13 @@ read_config_file() {
     error "Specified invalid disable_emails_on_success in config - It should be either \"yes\" or \"no\""
   elif [ "${disable_emails_on_success}" == "yes" ]; then
     echo "INFO: Notification Emails & Hook(s) disabled on Success"
+  fi
+
+  # Check for include_diff_in_email, default to no. Sanity check it's "yes" or "no"
+  if [ -z "${include_diff_in_email}" ]; then
+    include_diff_in_email="no"
+  elif [ "${include_diff_in_email}" != "yes" ] && [ "${include_diff_in_email}" != "no" ]; then
+    error "Specified invalid include_diff_in_email in config file - It should be either \"yes\" or \"no\""
   fi
 
   # Check for sync_pre_hash, default to yes. Sanity check it's "yes" or "no"
