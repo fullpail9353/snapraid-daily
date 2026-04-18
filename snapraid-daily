@@ -171,7 +171,11 @@ generate_logfiles() {
   sync_command_logfile=$( mktemp -t "${tmp_file_prefix}" )
   touch_command_logfile=$( mktemp -t "${tmp_file_prefix}" )
   diff_command_logfile=$( mktemp -t "${tmp_file_prefix}" )
+
+  # Extra Logfiles Required for Inserting Differences in Email Report
   main_logfile_without_diff=$( mktemp -t "${tmp_file_prefix}" )
+  sync_changes_log=$( mktemp -t "${tmp_file_prefix}" )
+  scrub_changes_log=$( mktemp -t "${tmp_file_prefix}" )
 }
 
 ##################################################
@@ -982,6 +986,11 @@ check_array_for_changes_and_thresholds() {
   # Call snapraid diff command
   snapraid_diff_cmd
 
+  # Copy the diff command logfile so it can be used to record the sync changes later
+  if [ "${include_diff_in_email}" == "yes" ]; then
+    cp "${diff_command_logfile}" "${sync_changes_log}" 
+  fi
+
   # Check the Exit Status of the Diff Command to see if a sync is required or not
   # Since Version 14.0, also need to consider the "unsynced" status
   if [ "${diff_exit_status}" == "diff" ] || [ "${diff_exit_status}" == "unsynced" ]; then
@@ -1161,6 +1170,11 @@ scrub_array() {
   # Need to check the array is up to date. More relevant if --scrub-only is selected
   log_to_email_time "Checking if Array is still up to date..."
   snapraid_diff_cmd
+
+  # Copy the diff command logfile so it can be used to record the sync changes later
+  if [ "${include_diff_in_email}" == "yes" ]; then
+    cp "${diff_command_logfile}" "${scrub_changes_log}" 
+  fi
 
   # Check if We have no Moved, Removed or Updated Files. Added or Copied are OK for scrubbing
   if [ $number_removed -eq 0 ] && [ $number_updated -eq 0 ] && [ $number_moved -eq 0 ]; then
@@ -1509,7 +1523,7 @@ notify_of_success() {
   # Make a Copy of the Main Logfile
   cp "${main_logfile}" "${main_logfile_without_diff}"
 
-  # INSERT DIFFERENCES HERE - IF DIFF WAS RAN AND FOUND CHANGES
+  # INSERT DIFFERENCES INTO EMAIL HERE
 
   # Send the Success Email
   if [ "${disable_emails_on_success}" == "no" ] && [ $enable_emails == 1 ]; then
@@ -1536,7 +1550,7 @@ notify_of_warning() {
   # Make a Copy of the Main Logfile
   cp "${main_logfile}" "${main_logfile_without_diff}"
 
-  # INSERT DIFFERENCES HERE - IF DIFF WAS RAN AND FOUND CHANGES
+  # INSERT DIFFERENCES INTO EMAIL HERE
 
   # Send Email Notification if Emails are Enabled and include attachment if present
   if [ $enable_emails == 1 ] && [ -n "${2}" ]; then
@@ -1590,6 +1604,9 @@ clean_up_logfiles() {
   rm $touch_command_logfile &> /dev/null
   rm $diff_command_logfile &> /dev/null
   rm $main_logfile_without_diff &> /dev/null
+  rm $main_logfile_without_diff &> /dev/null
+  rm $sync_changes_log &> /dev/null
+  rm $scrub_changes_log &> /dev/null
 }
 
 ###################################################
