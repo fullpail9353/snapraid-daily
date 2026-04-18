@@ -171,6 +171,7 @@ generate_logfiles() {
   sync_command_logfile=$( mktemp -t "${tmp_file_prefix}" )
   touch_command_logfile=$( mktemp -t "${tmp_file_prefix}" )
   diff_command_logfile=$( mktemp -t "${tmp_file_prefix}" )
+  main_logfile_without_diff=$( mktemp -t "${tmp_file_prefix}" )
 }
 
 ##################################################
@@ -1498,13 +1499,19 @@ notify_of_success() {
     log_to_email "##############################"
   fi
 
+  # Make a Copy of the Main Logfile
+  cp "${main_logfile}" "${main_logfile_without_diff}"
+
+  # INSERT DIFFERENCES HERE - IF DIFF WAS RAN AND FOUND CHANGES
+
   # Send the Success Email
   if [ "${disable_emails_on_success}" == "no" ] && [ $enable_emails == 1 ]; then
     send_email "${success_subject}"
   fi
 
-  # Call the Custom Notification Hook Script if one was given
-  run_notification_hooks "${success_subject}" "${main_logfile}"
+  # Call the Custom Notification Hook Script if one was given - Use the Logfile
+  # without the differences added
+  run_notification_hooks "${success_subject}" "${main_logfile_without_diff}"
 }
 
 # Warning Notification
@@ -1519,6 +1526,11 @@ notify_of_warning() {
   log_to_email "# SnapRAID-DAILY Result: WARNING(S)"
   log_to_email "##############################"
 
+  # Make a Copy of the Main Logfile
+  cp "${main_logfile}" "${main_logfile_without_diff}"
+
+  # INSERT DIFFERENCES HERE - IF DIFF WAS RAN AND FOUND CHANGES
+
   # Send Email Notification if Emails are Enabled and include attachment if present
   if [ $enable_emails == 1 ] && [ -n "${2}" ]; then
     send_email "${1}" "${2}"
@@ -1526,8 +1538,9 @@ notify_of_warning() {
     send_email "${1}"
   fi
 
-  # If a Custom Notification Hook is present - Call it here
-  run_notification_hooks "${1}" "${main_logfile}" "${2}"
+  # If a Custom Notification Hook is present - Call it here. Use the Logfile
+  # without the differences added
+  run_notification_hooks "${1}" "${main_logfile_without_diff}" "${2}"
 }
 
 # Send Emails using mutt 
@@ -1569,6 +1582,7 @@ clean_up_logfiles() {
   rm $sync_command_logfile &> /dev/null
   rm $touch_command_logfile &> /dev/null
   rm $diff_command_logfile &> /dev/null
+  rm $main_logfile_without_diff &> /dev/null
 }
 
 ###################################################
