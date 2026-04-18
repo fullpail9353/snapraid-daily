@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.2~beta1"
+version="1.6.2~beta2"
 
 ###################################################
 # VARIABLES
@@ -815,7 +815,14 @@ print_greeting() {
   else
     log_to_email " * Quiet Output: NO"
   fi
-  
+
+  # Print out if the Differences are being Included in the Email Report or Not
+  if [ "${include_diff_in_email}" == "yes" ]; then
+    log_to_email " * Include Differences in Email: YES"
+  else
+    log_to_email " * Include Differences in Email: NO"
+  fi
+    
   # Print Start and Stop Hooks if Being Used
   if [ -n "${start_hook1}" ] || [ -n "${end_hook1}" ] || [ -n "${notification_hook1}" ]; then
     log_to_email "Hooks:"
