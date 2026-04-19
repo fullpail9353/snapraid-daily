@@ -1,3 +1,31 @@
+snapraid-daily (1.6.2-1) stable; urgency=medium
+
+  * Added a check for ALL content files - @talltent7105 [#11]
+    - Previously only the 1st content file was checked for
+    - Seems a good idea to check for all of them
+    - This should handle leading, trailing spaces, & spaces in
+      the file name and also trailing comments in the main
+      SnapRAID configuration file.
+
+  * Added the option to add a detailed list of all changed files
+    since the last sync directly to the notification email. This
+    has been a requested feature.
+    - This is done through the use of a new configuration file
+      parameter - include_diff_in_email
+    - This is added to the inbuilt email sent using mutt only,
+      it is not included in what is sent to the notification hooks.
+    - Closes [#12].
+
+  * Add number relocated to scrub printout when changes are found
+    and the script stops when running scrub.
+
+  * Removed a reference to an old status command logfile that is
+    no longer used.
+
+  * Documentation Improvements.
+
+ -- Mark <mark9000@fastmail.org>  Sun, 19 Apr 2026 11:08:39 +0100
+
 snapraid-daily (1.6.1-1) stable; urgency=medium
 
   * Added support for Scrub Percentages with decimal points,
