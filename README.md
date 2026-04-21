@@ -44,7 +44,7 @@ To install the script, if on Debian or a Debian-based distro like Ubuntu or Mint
 
 * Download the latest Debian package from the release page [HERE](https://github.com/zoot101/snapraid-daily/releases)
 * Install it like so - all dependencies should be installed automatically. Answer the prompts for a user and group if you want to run the script as a different user other than root. If you are okay with running it as root, enter "root" at the prompts or leave them blank.
-  - `sudo apt install ./snapraid-daily_1.6.1-1_amd64.deb`
+  - `sudo apt install ./snapraid-daily_1.6.2-1_amd64.deb`
 * Edit the config file that was installed at **/etc/snapraid-daily.conf** to your needs. The comments included should help, check out the installed manual entry for the config file like so, or read on below. Note that the script should also run out of the box with the default config file (or with no config file), but will not send any emails.
   - `man snapraid-daily.conf`
 * Call the script directly to test it out. See the [Usage](#usage) section below.
@@ -55,8 +55,8 @@ To install the script, if on Debian or a Debian-based distro like Ubuntu or Mint
 To install the script on a non-Debian based distro, install the script manually like so:
 
 * Download the latest "Source Code" archive from the release page [HERE](https://github.com/zoot101/snapraid-daily/releases) and extract it.
-  - `unzip snapraid-daily-1.6.1.zip` or `tar xvf snapraid-daily-1.6.1.tar.gz`
-  - `cd snapraid-daily-1.6.1`
+  - `unzip snapraid-daily-1.6.2.zip` or `tar xvf snapraid-daily-1.6.2.tar.gz`
+  - `cd snapraid-daily-1.6.2`
 * Place the main script in /usr/bin and make it executable. For Example:
   - `chmod +x snapraid-daily && sudo cp snapraid-daily /usr/bin/`
 * Install the manual entries (optional)
@@ -252,7 +252,7 @@ Install the package like so:
 
 ```bash
 sudo apt update
-sudo apt install ./snapraid-daily_1.6.1-1_amd64.deb
+sudo apt install ./snapraid-daily_1.6.2-1_amd64.deb
 ```
 
 During installation, one will be prompted for a user and group to run the script as a service via systemd.
@@ -278,8 +278,8 @@ so its recommended to stick with what is on the releases page instead.
 
 ```bash
 # Extract the Archive
-unzip snapraid-daily-1.6.1.zip       # For the zip file
-tar xvf snapraid-daily-1.6.1.tar.gz  # For the tar.gz file
+unzip snapraid-daily-1.6.2.zip       # For the zip file
+tar xvf snapraid-daily-1.6.2.tar.gz  # For the tar.gz file
 
 cd snapraid-daily
 
@@ -1388,18 +1388,15 @@ Again download the latest source code archive from the releases page [HERE](http
 
 ```bash
 # Install build dependencies
-sudo apt install debhelper dh-exec debconf
+sudo apt install debhelper debconf po-debconf
 
 # Extract the archive 
-unzip snapraid-daily-1.6.1.zip      # For the Zip File
-tar xvf snapraid-daily-1.6.1.tar.gz # For the Tar File
+unzip snapraid-daily-1.6.2.zip      # For the Zip File
+tar xvf snapraid-daily-1.6.2.tar.gz # For the Tar File
+cd snapraid-daily-1.6.2
 
-cd snapraid-daily-1.6.1
-
-# Create a source archive using dh_make, answer "yes" to
-# the prompts. The default maintainer details are your username and
-# hostname. This is fine for a self created package.
-dh_make -s --createorig
+# Create the Source Archive with Debian Naming and Excluding the Debian Files
+tar cfJ ../snapraid-daily_1.6.2.orig.tar.xz --exclude="./debian" .
 
 # Build the package
 dpkg-buildpackage -uc -us
