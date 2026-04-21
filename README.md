@@ -1423,7 +1423,11 @@ nano debian/control # Or whichever edit you prefer
  snapraid (>=11.0),
 
 # Then rebuild the package as above
+tar cfJ ../snapraid-daily_1.6.2.orig.tar.xz --exclude="./debian" .
+dpkg-buildpackage -uc -us
 ```
+
+As before, a new Debian package should be created in the parent directory.
 
 # Return Codes
 
