@@ -489,7 +489,7 @@ those are still sent as normal.
 Set to \"yes\" to use, leave commented out or set to \"no\" to disable. Note that if one is using the notification hooks
 (see below), they are also disabled on successful runs if this option is used, but still called when errors are encountered.
 
-## include\_diff\_in\_email
+### include\_diff\_in\_email
 
 Add a list of all the file differences since the last sync to the final email sent at the end of the script. That would be all 
 added, removed, updated, moved, copied, relocated, restored files.
