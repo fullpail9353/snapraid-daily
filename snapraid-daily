@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.2"
+version="1.6.3~beta1"
 
 ###################################################
 # VARIABLES
@@ -1091,10 +1091,13 @@ sync_array() {
     log_to_email_time "Sync Completed on "$(date +%d/%m/%Y)
     log_to_email_time "Duration: "$sync_runtime_hours" hours, "$sync_runtime_minutes "minutes, "$sync_runtime_seconds" seconds"
 
-    # Get Error counts and Exit status from Sync Command Logfile
+    # Get Error counts and Exit status from Sync Command Logfile. Consider hash errors if using sync_pre_hash
     io_errors=$(grep -w "^summary:error_io" "${sync_command_logfile}" | awk -F ":" '{print $3}')
     data_errors=$(grep -w "^summary:error_data" "${sync_command_logfile}" | awk -F ":" '{print $3}')
     soft_errors=$(grep -w "^summary:error_soft" "${sync_command_logfile}" | awk -F ":" '{print $3}')
+    if [ "${sync_pre_hash}" == "yes" ]; then
+      hash_errors=$(grep -w "^hash_summary:error_soft" "${sync_command_logfile}" | awk -F ":" '{print $3}')
+    fi
     sync_exit_status=$(grep -w "^summary:exit" "${sync_command_logfile}"  | awk -F ":" '{print $3}')
 
     # In Versions 14.0+, easiest way is to compare the total number of files with those that are equal
@@ -1113,7 +1116,8 @@ sync_array() {
       exit $files_modified_during_sync_code
 
     # 1: Check if any of the above error counts the exit statuses are undefined - exit if so
-    elif [ -z "$io_errors" ] || [ -z "$data_errors" ] || [ -z "$soft_errors" ] || [ -z "${diff_exit_status}" ] || [ -z "${sync_exit_status}" ] || [ -z "${total_file_number}" ] || [ -z "${equal_file_number}" ]
+    elif [[ -z "$io_errors" || -z "$data_errors" || -z "$soft_errors" || -z "${sync_exit_status}" || -z "${total_file_number}" || \
+            -z "${equal_file_number}" || ("${sync_pre_hash}" == "yes" && -z "${hash_errors}") ]]
     then
       log_to_email_time "Unexpected Output from Sync - Please Investigate"
       log_to_email_time "Sync Output Log is attached..."
@@ -1124,12 +1128,16 @@ sync_array() {
       exit $error_code
 
     # 2: Exit if any of the number of errors above are non-zero or if the exit status is unexpected
-    elif [ $io_errors != 0 ] || [ $data_errors != 0 ] || [ $soft_errors != 0 ] || [ "${sync_exit_status}" != "ok" ]
+    elif [[ $io_errors != 0  ||  $data_errors != 0  ||  $soft_errors != 0  ||  "${sync_exit_status}" != "ok" || \
+          ("${sync_pre_hash}" == "yes" && $hash_errors != 0) ]]
     then
       log_to_email_time "Sync Log Reports Error(s) - Please Investigate"
       log_to_email_time " * I/O Errors:" $io_errors
       log_to_email_time " * Data Errors:" $data_errors
       log_to_email_time " * Soft Errors:" $soft_errors
+      if [ "${sync_pre_hash}" == "yes" ]; then
+        log_to_email_time " * Hash Errors:" $hash_errors
+      fi
       log_to_email_time " * Exit Status:" "${sync_exit_status}"
       log_to_email_time "Sync Output Log is attached..."
       log_to_email ""
