@@ -252,9 +252,9 @@ snapraid_diff_cmd() {
 
   # Check if any of the above are undefined, or if the exit status is not
   # "equal", "diff" or "unsynced" as this indicates something unexpected with the diff command
-  if [ -z $number_equal ] || [ -z $number_added ] || [ -z $number_removed ] || [ -z $number_relocated ] || \
-     [ -z $number_updated ] || [ -z $number_moved ] || [ -z $number_copied ] || \
-     [ -z $number_copied ] || [ -z $number_restored ] || [ -z "${diff_exit_status}" ]
+  if [[ -z $number_equal || -z $number_added || -z $number_removed || -z $number_relocated || \
+        -z $number_updated || -z $number_moved || -z $number_copied || \
+        -z $number_copied || -z $number_restored || -z "${diff_exit_status}" ]]
   then
     log_to_email_time "Problem with Diff Command - Stopping"
     log_to_email_time "Diff Command Logfile Is attached..."
@@ -264,8 +264,8 @@ snapraid_diff_cmd() {
     clean_up_logfiles
     exit $error_code
 
-  elif [ "${diff_exit_status}" != "diff" ] && [ "${diff_exit_status}" != "equal" ] && \
-       [ "${diff_exit_status}" != "unsynced" ]; then
+  elif [[ "${diff_exit_status}" != "diff" && "${diff_exit_status}" != "equal" && \
+        "${diff_exit_status}" != "unsynced" ]]; then
     log_to_email_time "Unexpected Exit Status for Diff - Stopping"
     log_to_email_time "It should be either \"diff\", \"equal\" or \"unsynced\""
     log_to_email_time "Diff Command Logfile Is attached..."
@@ -485,29 +485,37 @@ read_config_file() {
     error "Specified invalid sync_pre_hash in config file - It should be either \"yes\" or \"no\""
   fi
 
-  # Check for force_zero. Default to no if undefined - exit if invalid
-  if [ -z "${force_zero}" ]; then
+  # Check for force_zero & if set with input args. Default to no if undefined - exit if invalid
+  if [ "${force_zero_arg}" == "yes" ]; then
+    force_zero="yes"
+  elif [ -z "${force_zero}" ]; then
     force_zero="no"
   elif [ "${force_zero}" != "yes" ] && [ "${force_zero}" != "no" ]; then
     error "Specified invalid force_zero in config - It should be either \"yes\" or \"no\""
   fi
 
-  # Check for force_empty. Default to no if undefined - exit if invalid
-  if [ -z "${force_empty}" ]; then
+  # Check for force_empty & if set with input args. Default to no if undefined - exit if invalid
+  if [ "${force_empty_arg}" == "yes" ]; then
+    force_empty="yes"
+  elif [ -z "${force_empty}" ]; then
     force_empty="no"
   elif [ "${force_empty}" != "yes" ] && [ "${force_empty}" != "no" ]; then
     error "Specified invalid force_empty in config file - It should be either \"yes\" or \"no\""
   fi
 
-  # Check for force_uuid. Default to no if undefined - exit if invalid
-  if [ -z "${force_uuid}" ]; then
+  # Check for force_uuid & if set with input args. Default to no if undefined - exit if invalid
+  if [ "${force_uuid_arg}" == "yes" ]; then
+    force_uuid="yes"
+  elif [ -z "${force_uuid}" ]; then
     force_uuid="no"
   elif [ "${force_uuid}" != "yes" ] && [ "${force_uuid}" != "no" ]; then
     error "Specified invalid force_uuid in config file - It should be either \"yes\" or \"no\""
   fi
 
-  # Check for force_nocopy. Default to no if undefined - exit if invalid
-  if [ -z "${force_nocopy}" ]; then
+  # Check for force_nocopy & if set with input args. Default to no if undefined - exit if invalid
+  if [ "${force_nocopy_arg}" == "yes" ]; then
+    force_nocopy="yes"
+  elif [ -z "${force_nocopy}" ]; then
     force_nocopy="no"
   elif [ "${force_nocopy}" != "yes" ] && [ "${force_nocopy}" != "no" ]; then
     error "Specified invalid force_nocopy in config file - It should be either \"yes\" or \"no\""
@@ -595,6 +603,10 @@ check_dependencies() {
 
 # Print a condensed help message for a quick start
 print_help() {
+  force_zero=
+  force_empty=
+  force_uuid=
+  force_nocopy=
   echo ""
   echo "Usage: snapraid-daily         [OPTIONS...]"
   echo ""
@@ -619,6 +631,16 @@ print_help() {
   echo ""
   echo "  -h, --help                  Print help"
   echo ""
+  echo "Extra Sync Options: Included for Edge Cases, but not usually recommended or needed"
+  echo ""
+  echo "  -fz, --force-zero           Run Sync with --force-zero active."
+  echo ""
+  echo "  -fe, --force-empty          Run Sync with --force-empty active. Useful"
+  echo ""
+  echo "  -fu, --force-uuid           Run Sync with --force-uuid active."
+  echo ""
+  echo "  -fn, --force-nocopy         Run Sync with --force-nocopy active."
+  echo ""
   echo "Manual Entries:"
   echo "  Main Script:                snapraid-daily(1)      $ man snapraid-daily"
   echo "  Config File:                snapraid-daily.conf(1) $ man snapraid-daily.conf"
@@ -635,6 +657,10 @@ parse_arguments() {
   override_thresholds=
   quiet_option=
   disable_touch=
+  force_zero_arg=
+  force_empty_arg=
+  force_uuid_arg=
+  force_nocopy_arg=
 
   # Valid arguments are:
   # -o, --override-thresholds : Ignore Deletion/Moved Thresholds
@@ -643,6 +669,10 @@ parse_arguments() {
   # -f, --config              : Override default config file
   # -q, --quiet               : Suppress output of touch/diff/sync/scrub
   # -h, --help                : Print Help and Exit
+  # -fz, --force-zero         : Run sync with --force-zero
+  # -fe, --force-empty        : Run sync with --force-empty
+  # -fu, --force-uuid         : Run sync with --force-uuid
+  # -fn, --force-nocopy       : Run sync with --force-nocopy
   while (( ${#} )); do
     case "${1}" in
 
@@ -688,6 +718,26 @@ parse_arguments() {
       print_help
       ;;
 
+      # Check for Force Zero
+      -fz|--force-zero)
+      force_zero_arg="yes"
+      ;;
+
+      # Check for Force Empty
+      -fe|--force-empty)
+      force_empty_arg="yes"
+      ;;
+
+      # Check for Force UUID
+      -fu|--force-uuid)
+      force_uuid_arg="yes"
+      ;;
+
+      # Check for Force No-Copy
+      -fn|--force-nocopy)
+      force_nocopy_arg="yes"
+      ;;
+
       # Check for an Unrecognised Argument
       *)
       echo "Invalid Input Argument:" "${1}"
@@ -705,9 +755,13 @@ parse_arguments() {
   if [ -z $override_thresholds ]; then override_thresholds=0; fi
   if [ -z $quiet_option ]; then quiet_option=0; fi
   if [ -z $disable_touch ]; then disable_touch=0; fi
+  if [ -z "${force_zero_arg}" ]; then force_zero_arg="no"; fi
+  if [ -z "${force_empty_arg}" ]; then force_empty_arg="no"; fi
+  if [ -z "${force_uuid_arg}" ]; then force_uuid_arg="no"; fi
+  if [ -z "${force_nocopy_arg}" ]; then force_nocopy_arg="no"; fi
 
   # Check if --sync-only and --scrub-only were specified at the same time - Exit if so
-  if [ $sync_only == 1 ] && [ $scrub_only == 1 ]; then
+  if [[ $sync_only == 1 && $scrub_only == 1 ]]; then
     echo "-s|--sync-only & -c|--scrub-only arguments can't both be specified at the same time - Exiting"
     echo ""
     print_help
@@ -715,7 +769,7 @@ parse_arguments() {
   fi
 
   # Check if --override-thresholds and --scrub-only were specified at the same - Warn if so
-  if [ $scrub_only == 1 ] && [ $override_thresholds == 1 ]; then
+  if [[ $scrub_only == 1 && $override_thresholds == 1 ]]; then
     echo "WARNING: -o|--override-thresholds has no effect when using -c|--scrub-only"
   fi
 }
@@ -1098,7 +1152,6 @@ sync_array() {
     fi
     sync_exit_status=$(awk -F ":" '/^summary:exit:/ {print $3}' "${sync_command_logfile}")
 
-    # In Versions 14.0+, easiest way is to compare the total number of files with those that are equal
     # The File number is referenced multiple times throughout the log - pick the 1st one
     total_file_number=$(awk -F ":" '/^content_info:file:/ {print $3; exit}' "${sync_command_logfile}")
     equal_file_number=$(awk -F ":" '/^summary:equal:/ {print $3}' "${sync_command_logfile}")
@@ -1113,9 +1166,9 @@ sync_array() {
       clean_up_logfiles
       exit $files_modified_during_sync_code
 
-    # 1: Check if any of the above error counts the exit statuses are undefined - exit if so
+    # 1: Check for any undefined parameters - exit if so. Only consider hash errors if not using sync_pre_hash and force_nocopy
     elif [[ -z "$io_errors" || -z "$data_errors" || -z "$soft_errors" || -z "${sync_exit_status}" || -z "${total_file_number}" || \
-            -z "${equal_file_number}" || ("${sync_pre_hash}" == "yes" && -z "${hash_errors}") ]]
+            -z "${equal_file_number}" || ("${sync_pre_hash}" == "yes" && "${force_nocopy}" == "no" && -z "${hash_errors}") ]]
     then
       log_to_email_time "Unexpected Output from Sync - Please Investigate"
       log_to_email_time "Sync Output Log is attached..."
@@ -1127,7 +1180,7 @@ sync_array() {
 
     # 2: Exit if any of the number of errors above are non-zero or if the exit status is unexpected
     elif [[ $io_errors != 0  ||  $data_errors != 0  ||  $soft_errors != 0  ||  "${sync_exit_status}" != "ok" || \
-          ("${sync_pre_hash}" == "yes" && $hash_errors != 0) ]]
+          ("${sync_pre_hash}" == "yes" && "${force_nocopy}" == "no" && $hash_errors != 0) ]]
     then
       log_to_email_time "Sync Log Reports Error(s) - Please Investigate"
       log_to_email_time " * I/O Errors:" $io_errors
