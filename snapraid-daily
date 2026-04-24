@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.3~beta2"
+version="1.6.3~beta3"
 
 ###################################################
 # VARIABLES
@@ -603,10 +603,6 @@ check_dependencies() {
 
 # Print a condensed help message for a quick start
 print_help() {
-  force_zero=
-  force_empty=
-  force_uuid=
-  force_nocopy=
   echo ""
   echo "Usage: snapraid-daily         [OPTIONS...]"
   echo ""
@@ -1335,7 +1331,7 @@ get_number_of_hooks() {
 
   # Loop Through Defined Hooks in Config File
   # to find out how many are defined
-  for i in $(seq 1 1 $((max_hooks+1))); do
+  for ((i=1; i<=max_hooks+1; i++)); do
     local hook="${1}"$i
 
     # Check the hook script exists and is executable
@@ -1394,7 +1390,7 @@ run_start_hooks() {
     log_to_email "##############################"
 
     # Loop through each start hook
-    for i in $(seq 1 1 $N_start_hooks); do
+    for ((i=1; i<=N_start_hooks; i++)); do
       local start_hook="start_hook"$i
       log_to_email_time "Calling Start Hook $i/$N_start_hooks..."
 
@@ -1429,7 +1425,7 @@ run_end_hooks() {
     local error_count=0
  
     # Loop through each end hook
-    for i in $(seq 1 1 $N_end_hooks); do
+    for ((i=1; i<=N_end_hooks; i++)); do
       local end_hook="end_hook"$i
       log_to_email_time "Calling End Hook $i/$N_end_hooks..."
 
@@ -1519,7 +1515,7 @@ run_notification_hooks() {
       echo "##############################"
 
       # Loop through all defined hooks
-      for i in $(seq 1 1 $N_notification_hooks); do
+      for ((i=1; i<=N_notification_hooks; i++)); do
         local notification_hook="notification_hook"$i
 
         # Call the Custom Notification Hook Script if one was given
@@ -1655,9 +1651,6 @@ notify_of_success() {
     log_to_email "##############################"
   fi
 
-  # Make a Copy of the Main Logfile
-  cp "${main_logfile}" "${main_logfile_without_diff}"
-
   # Insert Differences into Email Logfile if Enabled
   include_differences_in_email
 
@@ -1668,7 +1661,7 @@ notify_of_success() {
 
   # Call the Custom Notification Hook Script if one was given - Use the Logfile
   # without the differences added
-  run_notification_hooks "${success_subject}" "${main_logfile_without_diff}"
+  run_notification_hooks "${success_subject}" "${main_logfile}"
 }
 
 # Warning Notification
@@ -1698,7 +1691,7 @@ notify_of_warning() {
 
   # If a Custom Notification Hook is present - Call it here. Use the Logfile
   # without the differences added
-  run_notification_hooks "${1}" "${main_logfile_without_diff}" "${2}"
+  run_notification_hooks "${1}" "${main_logfile}" "${2}"
 }
 
 # Send Emails using mutt 
@@ -1740,7 +1733,6 @@ clean_up_logfiles() {
   rm $sync_command_logfile &> /dev/null
   rm $touch_command_logfile &> /dev/null
   rm $diff_command_logfile &> /dev/null
-  rm $main_logfile_without_diff &> /dev/null
   rm $main_logfile_without_diff &> /dev/null
   rm $sync_changes_log &> /dev/null
   rm $scrub_changes_log &> /dev/null
