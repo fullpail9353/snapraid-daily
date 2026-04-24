@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.3~beta1"
+version="1.6.3~beta2"
 
 ###################################################
 # VARIABLES
@@ -265,7 +265,7 @@ snapraid_diff_cmd() {
     exit $error_code
 
   elif [[ "${diff_exit_status}" != "diff" && "${diff_exit_status}" != "equal" && \
-        "${diff_exit_status}" != "unsynced" ]]; then
+          "${diff_exit_status}" != "unsynced" ]]; then
     log_to_email_time "Unexpected Exit Status for Diff - Stopping"
     log_to_email_time "It should be either \"diff\", \"equal\" or \"unsynced\""
     log_to_email_time "Diff Command Logfile Is attached..."
@@ -662,17 +662,7 @@ parse_arguments() {
   force_uuid_arg=
   force_nocopy_arg=
 
-  # Valid arguments are:
-  # -o, --override-thresholds : Ignore Deletion/Moved Thresholds
-  # -s, --sync-only           : Only Run Sync
-  # -c, --scrub-only          : Only Run Scrub
-  # -f, --config              : Override default config file
-  # -q, --quiet               : Suppress output of touch/diff/sync/scrub
-  # -h, --help                : Print Help and Exit
-  # -fz, --force-zero         : Run sync with --force-zero
-  # -fe, --force-empty        : Run sync with --force-empty
-  # -fu, --force-uuid         : Run sync with --force-uuid
-  # -fn, --force-nocopy       : Run sync with --force-nocopy
+  # Check for valid input arguments
   while (( ${#} )); do
     case "${1}" in
 
@@ -935,7 +925,7 @@ initial_status_check() {
     exit $already_in_use_code
   
   # Scenario 2 - Check if the important parameters above are not defined
-  elif [ -z $rehash_check ] || [ -z $unsynced_check ] || [ -z $bad_check ] || [ -z $touch_required_count ]
+  elif [[ -z $rehash_check || -z $unsynced_check || -z $bad_check || -z $touch_required_count ]]
   then
     log_to_email_time "Unexpected Status Output - Exiting..."
     log_to_email_time "Status Logfile is attached"
@@ -988,7 +978,7 @@ initial_status_check() {
   fi
 
   # Check if Touch is Needed and if Scrub Only is Not Selected
-  if [ $scrub_only -eq 0 ] && [ $touch_required_count != 0 ]; then
+  if [[ $scrub_only -eq 0 && $touch_required_count != 0 ]]; then
     log_to_email_time "Touch Required on" $touch_required_count "files..."
     touch_required=1
   else
@@ -1000,7 +990,7 @@ initial_status_check() {
 
 # Touch Function - Run touch if required (and scrub only is not selected)
 run_touch_if_needed() {
-  if [ $touch_required -eq 1 ] && [ $disable_touch -eq 0 ]; then
+  if [[ $touch_required -eq 1 && $disable_touch -eq 0 ]]; then
     log_to_email "##############################"
     log_to_email "# SnapRAID-DAILY: Touch"
     log_to_email "##############################"
@@ -1045,7 +1035,7 @@ check_array_for_changes_and_thresholds() {
 
   # Check the Exit Status of the Diff Command to see if a sync is required or not
   # Since Version 14.0, also need to consider the "unsynced" status
-  if [ "${diff_exit_status}" == "diff" ] || [ "${diff_exit_status}" == "unsynced" ]; then
+  if [[ "${diff_exit_status}" == "diff" || "${diff_exit_status}" == "unsynced" ]]; then
 
     # Specify a Sync is Required
     sync_required=1
@@ -1186,7 +1176,7 @@ sync_array() {
       log_to_email_time " * I/O Errors:" $io_errors
       log_to_email_time " * Data Errors:" $data_errors
       log_to_email_time " * Soft Errors:" $soft_errors
-      if [ "${sync_pre_hash}" == "yes" ]; then
+      if [[ "${sync_pre_hash}" == "yes" && "${force_nocopy}" == "no" ]]; then
         log_to_email_time " * Hash Errors:" $hash_errors
       fi
       log_to_email_time " * Exit Status:" "${sync_exit_status}"
@@ -1207,6 +1197,13 @@ sync_array() {
     else
       # Print Out the Changes to Email Output
       log_to_email_time "Sync was Successful"
+      log_to_email " * I/O Errors:" $io_errors
+      log_to_email " * Data Errors:" $data_errors
+      log_to_email " * Soft Errors:" $soft_errors
+      if [[ "${sync_pre_hash}" == "yes" && "${force_nocopy}" == "no" ]]; then
+        log_to_email " * Hash Errors:" $hash_errors
+      fi
+      log_to_email " * Exit Status:" "${sync_exit_status}"
       log_to_email_time "Array Changes Found & Updated:"
       log_to_email " * Added:" $number_added
       log_to_email " * Removed:" $number_removed
@@ -1236,7 +1233,7 @@ scrub_array() {
   fi
 
   # Check if We have no Moved, Removed or Updated Files. Added or Copied are OK for scrubbing
-  if [ $number_removed -eq 0 ] && [ $number_updated -eq 0 ] && [ $number_moved -eq 0 ]; then
+  if [[ $number_removed == 0 && $number_updated == 0 && $number_moved == 0 && $number_relocated == 0 ]]; then
     # Array is still up to date - proceeding to scrub
     log_to_email_time "Array is Up-to-Date - Proceeding"
 
@@ -1272,7 +1269,7 @@ scrub_array() {
       nothing_to_scrub=1
 
     # 1: Check if any of the above error counts or exit status are undefined
-    elif [ -z $scrub_io_errors ] || [ -z $scrub_data_errors ] || [ -z $scrub_soft_errors ] || [ -z "${scrub_exit_status}" ]
+    elif [[ -z $scrub_io_errors || -z $scrub_data_errors || -z $scrub_soft_errors || -z "${scrub_exit_status}" ]]
     then
       log_to_email_time "Unexpected output from Scrub - Please Investigate"
       log_to_email_time "Scrub Output Log is attached..."
@@ -1283,13 +1280,13 @@ scrub_array() {
       exit $error_code
 
     # 2: Check if any of the number of errors in the counts above are non-zero
-    elif [ $scrub_io_errors != 0 ] || [ $scrub_data_errors != 0 ] || [ $scrub_soft_errors != 0 ] || [ "${scrub_exit_status}" != "ok" ]
+    elif [[ $scrub_io_errors != 0 || $scrub_data_errors != 0 || $scrub_soft_errors != 0 || "${scrub_exit_status}" != "ok" ]]
     then
       log_to_email_time "Scrub Log Reports Error(s) - Please Investigate"
-      log_to_email_time " * I/O Errors:" $scrub_io_errors
-      log_to_email_time " * Data Errors:" $scrub_data_errors
-      log_to_email_time " * Soft Errors:" $scrub_soft_errors
-      log_to_email_time " * Exit Status:" "${scrub_exit_status}"
+      log_to_email " * I/O Errors:" $scrub_io_errors
+      log_to_email " * Data Errors:" $scrub_data_errors
+      log_to_email " * Soft Errors:" $scrub_soft_errors
+      log_to_email " * Exit Status:" "${scrub_exit_status}"
       log_to_email_time "Scrub Output Log is attached..."
       log_to_email ""
       run_end_hooks
@@ -1300,6 +1297,10 @@ scrub_array() {
     # Otherwise the scrub was successful
     else
       log_to_email_time "Scrub was successful"
+      log_to_email " * I/O Errors:" $scrub_io_errors
+      log_to_email " * Data Errors:" $scrub_data_errors
+      log_to_email " * Soft Errors:" $scrub_soft_errors
+      log_to_email " * Exit Status:" "${scrub_exit_status}"
       log_to_email_time "Scrubbed" $scrub_percent"% older than" $scrub_age "days"
       log_to_email ""
       nothing_to_scrub=0
@@ -1396,10 +1397,9 @@ run_start_hooks() {
     for i in $(seq 1 1 $N_start_hooks); do
       local start_hook="start_hook"$i
       log_to_email_time "Calling Start Hook $i/$N_start_hooks..."
-      "${!start_hook}" "start"
-  
-      # Check Error Code
-      if [ $? != 0 ]; then
+
+      # Run Start Hook & Check Error Code
+      if ! "${!start_hook}" "start"; then
         log_to_email_time "Start Hook $i/$N_start_hooks ended in error"
         log_to_email ""
         notify_of_warning "SnapRAID-DAILY: Start Hook Error(s)"
@@ -1431,13 +1431,10 @@ run_end_hooks() {
     # Loop through each end hook
     for i in $(seq 1 1 $N_end_hooks); do
       local end_hook="end_hook"$i
- 
       log_to_email_time "Calling End Hook $i/$N_end_hooks..."
-      # Run End Hook Directly with "end" argument
-      "${!end_hook}" "end"
-  
-      # Check Error Code - Script Continues if the End Hook Results in an Error
-      if [ $? != 0 ]; then
+
+      # Run End Hook Directly with "end" argument & check error code
+      if ! "${!end_hook}" "end"; then
         error_count=$((error_count+1))
         log_to_email_time "End Hook $i/$N_end_hooks ended in error"
         log_to_email ""
@@ -1568,9 +1565,8 @@ include_differences_in_email() {
       log_to_email "##############################"
       log_to_email "# SnapRAID-DAILY: File Differences"
       log_to_email "##############################"
-      if [ $number_added == 0 ] && [ $number_removed == 0 ] && [ $number_updated == 0 ] && \
-         [ $number_moved == 0 ] && [ $number_copied == 0 ] && [ $number_relocated == 0 ] && \
-         [ $number_restored == 0 ]
+      if [[ $number_added == 0 && $number_removed == 0 && $number_updated == 0 && $number_moved == 0 && \
+            $number_copied == 0 && $number_relocated == 0 && $number_restored == 0 ]]
       then
         log_to_email_time "No Changes since the last sync."
       else
