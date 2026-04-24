@@ -1676,9 +1676,6 @@ notify_of_warning() {
   log_to_email "# SnapRAID-DAILY Result: WARNING(S)"
   log_to_email "##############################"
 
-  # Make a Copy of the Main Logfile
-  cp "${main_logfile}" "${main_logfile_without_diff}"
-
   # Insert Differences into Email Logfile if Enabled
   include_differences_in_email
 
