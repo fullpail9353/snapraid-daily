@@ -44,7 +44,7 @@ To install the script, if on Debian or a Debian-based distro like Ubuntu or Mint
 
 * Download the latest Debian package from the release page [HERE](https://github.com/zoot101/snapraid-daily/releases)
 * Install it like so - all dependencies should be installed automatically. Answer the prompts for a user and group if you want to run the script as a different user other than root. If you are okay with running it as root, enter "root" at the prompts or leave them blank.
-  - `sudo apt install ./snapraid-daily_1.6.2-1_amd64.deb`
+  - `sudo apt install ./snapraid-daily_1.6.3-1_amd64.deb`
 * Edit the config file that was installed at **/etc/snapraid-daily.conf** to your needs. The comments included should help, check out the installed manual entry for the config file like so, or read on below. Note that the script should also run out of the box with the default config file (or with no config file), but will not send any emails.
   - `man snapraid-daily.conf`
 * Call the script directly to test it out. See the [Usage](#usage) section below.
@@ -55,8 +55,8 @@ To install the script, if on Debian or a Debian-based distro like Ubuntu or Mint
 To install the script on a non-Debian based distro, install the script manually like so:
 
 * Download the latest "Source Code" archive from the release page [HERE](https://github.com/zoot101/snapraid-daily/releases) and extract it.
-  - `unzip snapraid-daily-1.6.2.zip` or `tar xvf snapraid-daily-1.6.2.tar.gz`
-  - `cd snapraid-daily-1.6.2`
+  - `unzip snapraid-daily-1.6.3.zip` or `tar xvf snapraid-daily-1.6.3.tar.gz`
+  - `cd snapraid-daily-1.6.3`
 * Place the main script in /usr/bin and make it executable. For Example:
   - `chmod +x snapraid-daily && sudo cp snapraid-daily /usr/bin/`
 * Install the manual entries (optional)
@@ -164,16 +164,13 @@ Usage: snapraid-daily         [OPTIONS...]
                               Note that if both of these options are omitted, the
                               default is to run sync and then scrub. They also can
                               not be specified at the same time
-
-  -o, --override-thresholds   Ignore the deletion/moved thresholds to force a sync,
-                              useful to quickly sync if the thresholds are exceeded,
-                              but one is happy to proceed.
+  -o, --override-thresholds   Ignore the deletion/moved thresholds to force a sync
 
   -f, --config [path-to-conf] Override default config file. Could be useful if one
                               has multiple snapraid arrays to manage on the same system
 
   -d, --disable-touch         Disable the touch operation. Can be useful to bypass
-                              expected touch errors, where for example files were
+                              expected touch errors. Where for example files were
                               recently removed from the array.
 
   -q, --quiet                 Suppress the output of the touch, diff, sync and scrub
@@ -181,6 +178,16 @@ Usage: snapraid-daily         [OPTIONS...]
                               displayed as normal.
 
   -h, --help                  Print help
+
+Extra Sync Options: Included for Edge Cases, but not usually recommended or needed
+
+  -fz, --force-zero           Run Sync with --force-zero active.
+
+  -fe, --force-empty          Run Sync with --force-empty active. Useful
+
+  -fu, --force-uuid           Run Sync with --force-uuid active.
+
+  -fn, --force-nocopy         Run Sync with --force-nocopy active.
 
 Manual Entries:
   Main Script:                snapraid-daily(1)      $ man snapraid-daily
@@ -252,7 +259,7 @@ Install the package like so:
 
 ```bash
 sudo apt update
-sudo apt install ./snapraid-daily_1.6.2-1_amd64.deb
+sudo apt install ./snapraid-daily_1.6.3-1_amd64.deb
 ```
 
 During installation, one will be prompted for a user and group to run the script as a service via systemd.
@@ -278,8 +285,8 @@ so its recommended to stick with what is on the releases page instead.
 
 ```bash
 # Extract the Archive
-unzip snapraid-daily-1.6.2.zip       # For the zip file
-tar xvf snapraid-daily-1.6.2.tar.gz  # For the tar.gz file
+unzip snapraid-daily-1.6.3.zip       # For the zip file
+tar xvf snapraid-daily-1.6.3.tar.gz  # For the tar.gz file
 
 cd snapraid-daily
 
@@ -510,14 +517,17 @@ causes SnapRAID to continue to sync anyway in this condition.
 
 Set to \"yes\" to use, leave commented out or set to \"no\" to disable.
 
+Can also be set directly on the command line with the **-fz** or **--force-zero** option.
+
 ### force\_empty
 
 If one or more of the disks are found to now be empty whereby in the past they were not, SnapRAID will report this as an error and
 stop the sync. This is **NOT RECOMMENDED** to use, but is included for certain edge conditions that may require it. This option causes
 SnapRAID to continue to sync anyway in this condition.
 
-Set to \"yes\" to use, leave commented out or set to \"no\" to
-disable.
+Set to \"yes\" to use, leave commented out or set to \"no\" to disable.
+
+Can also be set directly on the command line with the **-fe** or **--force-empty** option.
 
 ### force\_uuid
 
@@ -525,8 +535,9 @@ If the UUID of one or more disks is found to change, usually SnapRAID will repor
 SnapRAID to continue to sync anyway in this condition. This is also **NOT RECOMMENDED** to use, but is again included for certain edge conditions
 that may require it.
 
-Set to \"yes\" to use, leave commented out or set to \"no\" to
-disable.
+Set to \"yes\" to use, leave commented out or set to \"no\" to disable.
+
+Can also be set directly on the command line with the **-fu** or **--force-uuid** option.
 
 ### force\_nocopy
 
@@ -536,8 +547,9 @@ that may require it.
 
 Note also that using this option will automatically disable the Sync Pre-Hash if one is using it.
 
-Set to \"yes\" to use, leave commented out or set to \"no\" to
-disable.
+Set to \"yes\" to use, leave commented out or set to \"no\" to disable.
+
+Can also be set directly on the command line with the **-fn** or **--force-nocopy** option.
 
 ### snapraid\_binary\_path
 
@@ -1155,7 +1167,7 @@ A sample email notification of the script is shown below, this uses the service 
 
 ```
 ##############################
-# SnapRAID-DAILY Version: 1.6.2
+# SnapRAID-DAILY Version: 1.6.3
 ##############################
 Initialized at 06:00:00 on 20/04/2026
  * Hostname: server.home.lan
@@ -1221,6 +1233,11 @@ Run-Log is Below:
 06:01:48 : Sync Completed on 20/04/2026
 06:01:48 : Duration: 0 hours, 1 minutes, 22 seconds
 06:01:48 : Sync was Successful
+ * I/O Errors: 0
+ * Data Errors: 0
+ * Soft Errors: 0
+ * Hash Errors: 0
+ * Exit Status: ok
 06:01:48 : Array Changes Found & Updated:
  * Added: 10
  * Removed: 1
@@ -1240,6 +1257,11 @@ Run-Log is Below:
 07:24:20 : Scrub Completed at 20/04/2026
 07:24:20 : Duration: 1 hours, 21 minutes, 49 seconds
 07:24:20 : Scrub was successful
+ * I/O Errors: 0
+ * Data Errors: 0
+ * Soft Errors: 0
+ * Hash Errors: 0
+ * Exit Status: ok
 07:24:20 : Scrubbed 15% older than 2 days
 
 ##############################
@@ -1391,12 +1413,12 @@ Again download the latest source code archive from the releases page [HERE](http
 sudo apt install debhelper debconf po-debconf
 
 # Extract the archive 
-unzip snapraid-daily-1.6.2.zip      # For the Zip File
-tar xvf snapraid-daily-1.6.2.tar.gz # For the Tar File
-cd snapraid-daily-1.6.2
+unzip snapraid-daily-1.6.3.zip      # For the Zip File
+tar xvf snapraid-daily-1.6.3.tar.gz # For the Tar File
+cd snapraid-daily-1.6.3
 
 # Create the Source Archive with Debian Naming and Excluding the Debian Files
-tar cfJ ../snapraid-daily_1.6.2.orig.tar.xz --exclude="./debian" .
+tar cfJ ../snapraid-daily_1.6.3.orig.tar.xz --exclude="./debian" .
 
 # Build the package
 dpkg-buildpackage -uc -us
@@ -1423,7 +1445,7 @@ nano debian/control # Or whichever edit you prefer
  snapraid (>=11.0),
 
 # Then rebuild the package as above
-tar cfJ ../snapraid-daily_1.6.2.orig.tar.xz --exclude="./debian" .
+tar cfJ ../snapraid-daily_1.6.3.orig.tar.xz --exclude="./debian" .
 dpkg-buildpackage -uc -us
 ```
 
