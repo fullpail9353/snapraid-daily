@@ -501,10 +501,9 @@ Set to \"yes\" to use, leave commented out or set to \"no\" to disable. Note tha
 Add a list of all the file differences since the last sync to the final email sent at the end of the script. That would be all 
 added, removed, updated, moved, copied, relocated, restored files.
 
-Note that this is only included in the inbuilt email report that is sent with mutt. It is not included in any of the notification hooks,
-given services like **ntfy** or **Telegram** are more suited to compact messages.
-
 Take care using this option as it can make the email body very large if there are lots of files. Off by default.
+
+The list of differences is also included in what is sent to the notification hooks if one is using one or more of those.
 
 Set to \"yes\" to use, leave commented out or set to \"no\" to disable. See the sample email output at the bottom here for an example
 of how it looks.
