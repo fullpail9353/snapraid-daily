@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.3~beta4"
+version="1.6.3~beta5"
 
 ###################################################
 # VARIABLES
@@ -1538,37 +1538,37 @@ include_differences_in_email() {
         log_to_email ""
         log_to_email "Added Files: $number_added"
         if [ $number_added -ne 0 ]; then
-          grep -w "^scan:add" "${diff_changes_log}" | sed "s/^scan://" | tee -a "${main_logfile}"
+          awk '/^scan:add/ { sub(/^scan:/, ""); print }' "${diff_changes_log}" | tee -a "${main_logfile}"
         fi
         log_to_email ""
         log_to_email "Removed Files: $number_removed"
         if [ $number_removed -ne 0 ]; then
-          grep -w "^scan:remove" "${diff_changes_log}" | sed "s/^scan://" | tee -a "${main_logfile}"
+          awk '/^scan:remove/ { sub(/^scan:/, ""); print }' "${diff_changes_log}" | tee -a "${main_logfile}"
         fi
         log_to_email ""
         log_to_email "Updated Files: $number_updated"
         if [ $number_updated -ne 0 ]; then
-          grep -w "^scan:update" "${diff_changes_log}" | sed "s/^scan://" | tee -a "${main_logfile}"
+          awk '/^scan:update/ { sub(/^scan:/, ""); print }' "${diff_changes_log}" | tee -a "${main_logfile}"
         fi
         log_to_email ""
         log_to_email "Moved Files: $number_moved"
         if [ $number_moved -ne 0 ]; then
-          grep -w "^scan:move" "${diff_changes_log}" | sed "s/^scan://" | tee -a "${main_logfile}"
+          awk '/^scan:move/ { sub(/^scan:/, ""); print }' "${diff_changes_log}" | tee -a "${main_logfile}"
         fi
         log_to_email ""
         log_to_email "Copied Files: $number_copied"
         if [ $number_copied -ne 0 ]; then
-          grep -w "^scan:copy" "${diff_changes_log}" | sed "s/^scan://" | tee -a "${main_logfile}"
+          awk '/^scan:copy/ { sub(/^scan:/, ""); print }' "${diff_changes_log}" | tee -a "${main_logfile}"
         fi
         log_to_email ""
         log_to_email "Relocated Files: $number_relocated"
         if [ $number_relocated -ne 0 ]; then
-          grep -w "^scan:relocate" "${diff_changes_log}" | sed "s/^scan://" | tee -a "${main_logfile}"
+          awk '/^scan:relocate/ { sub(/^scan:/, ""); print }' "${diff_changes_log}" | tee -a "${main_logfile}"
         fi
         log_to_email ""
         log_to_email "Restored Files: $number_restored"
         if [ $number_restored -ne 0 ]; then
-          grep -w "^scan:restore" "${diff_changes_log}" | sed "s/^scan://" | tee -a "${main_logfile}"
+          awk '/^scan:restore/ { sub(/^scan:/, ""); print }' "${diff_changes_log}" | tee -a "${main_logfile}"
         fi
       fi
     fi
