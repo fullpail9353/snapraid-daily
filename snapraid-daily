@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.3~beta3"
+version="1.6.3~beta4"
 
 ###################################################
 # VARIABLES
@@ -200,8 +200,8 @@ snapraid_status_to_email() {
   log_to_email ""
 }
 
+# Call Snapraid smart and pipe the output into the email
 snapraid_smart_report() {
-  # Call Snapraid smart and pipe the output into the email
   if [ "${1}" == "non_root" ]; then
     sudo "${snapraid_binary_path}" -c "${snapraid_config_file_path}" smart | tee -a $main_logfile
   else
@@ -209,8 +209,8 @@ snapraid_smart_report() {
   fi
 }
 
+# Call Snapraid down to spin down disks
 snapraid_spin_down_disks() {
-  # Call Snapraid down to spin down disks
   if [ "${1}" == "non_root" ]; then
     sudo "${snapraid_binary_path}" -c "${snapraid_config_file_path}" down | tee -a $main_logfile
   else
@@ -218,22 +218,18 @@ snapraid_spin_down_disks() {
   fi
 }
 
+# Call snapraid touch to update timestamps. Suppress all output if --quiet option is set
 snapraid_touch_cmd() {
-  # Specify SnapRAID Touch arguments
   snapraid_touch_args=( -c "${snapraid_config_file_path}" -v -l $touch_command_logfile )
-
-  # Call snapraid touch to update timestamps. Suppress all output if --quiet option is set
   if [ $quiet_option == 1 ]; then
     snapraid_touch_args=( "${snapraid_touch_args[@]}" -qqqq )
   fi
   "${snapraid_binary_path}" "${snapraid_touch_args[@]}" touch
 }
 
+# Call snapraid diff - Suppress all output if the -q, --quiet option is set
 snapraid_diff_cmd() {
-  # Define snapraid diff arguments
   snapraid_diff_args=( -c "${snapraid_config_file_path}" -v -l $diff_command_logfile ) 
-
-  # Call snapraid diff - Suppress all output if the -q, --quiet option is set
   if [ $quiet_option == 1 ]; then
     snapraid_diff_args=( "${snapraid_diff_args[@]}" -qqqq)
   fi
@@ -250,12 +246,10 @@ snapraid_diff_cmd() {
   number_restored=$( awk -F ":" '/^summary:restored:/ {print $3}' "${diff_command_logfile}")
   diff_exit_status=$( awk -F ":" '/^summary:exit:/ {print $3}' "${diff_command_logfile}")
 
-  # Check if any of the above are undefined, or if the exit status is not
-  # "equal", "diff" or "unsynced" as this indicates something unexpected with the diff command
+  # Check if any of the above are undefined, or if the exit status is not expected
   if [[ -z $number_equal || -z $number_added || -z $number_removed || -z $number_relocated || \
         -z $number_updated || -z $number_moved || -z $number_copied || \
-        -z $number_copied || -z $number_restored || -z "${diff_exit_status}" ]]
-  then
+        -z $number_copied || -z $number_restored || -z "${diff_exit_status}" ]]; then
     log_to_email_time "Problem with Diff Command - Stopping"
     log_to_email_time "Diff Command Logfile Is attached..."
     log_to_email ""
@@ -263,7 +257,6 @@ snapraid_diff_cmd() {
     notify_of_warning "SnapRAID-DAILY: Diff Warning(s)" $diff_command_logfile
     clean_up_logfiles
     exit $error_code
-
   elif [[ "${diff_exit_status}" != "diff" && "${diff_exit_status}" != "equal" && \
           "${diff_exit_status}" != "unsynced" ]]; then
     log_to_email_time "Unexpected Exit Status for Diff - Stopping"
@@ -277,18 +270,9 @@ snapraid_diff_cmd() {
   fi    
 }
 
+# Call snapraid sync
 snapraid_sync_cmd() {
-  # Define snapraid sync arguments - Disable pre-hash if specified in config file
   snapraid_sync_args=( -c "${snapraid_config_file_path}" -v -l $sync_command_logfile)
-
-  # Add Pre-Hash Step (On by default), however disable if the force_nocopy is enabled
-  if [ "${sync_pre_hash}" == "yes" ]; then
-    if [ "${force_nocopy}" == "no" ]; then
-      snapraid_sync_args=( "${snapraid_sync_args[@]}" -h)
-    else
-      log_to_email_time "SYNC WARNING: Disabling Pre-Hash as force_nocopy is enabled."
-    fi
-  fi
 
   # Check for force_zero, force_empty, force_uuid, or force_nocopy inputs
   if [ "${force_zero}" == "yes" ]; then
@@ -303,25 +287,30 @@ snapraid_sync_cmd() {
     snapraid_sync_args=( "${snapraid_sync_args[@]}" --force-uuid )
     log_to_email_time "SYNC WARNING: --force-uuid is enabled."
   fi
+
+  # Add Pre-Hash Step (On by default), however disable if the force_nocopy is enabled
+  if [ "${sync_pre_hash}" == "yes" ]; then
+    if [ "${force_nocopy}" == "no" ]; then
+      snapraid_sync_args=( "${snapraid_sync_args[@]}" -h)
+    else
+      log_to_email_time "SYNC WARNING: Disabling Pre-Hash as force_nocopy is enabled."
+    fi
+  fi
   if [ "${force_nocopy}" == "yes" ]; then
     snapraid_sync_args=( "${snapraid_sync_args[@]}" --force-nocopy )
     log_to_email_time "SYNC WARNING: --force-nocopy is enabled."
   fi
  
-  # Suppress all output if the -q, --quiet option is set
+  # Suppress all output if the -q, --quiet option is set, then call sync
   if [ $quiet_option == 1 ]; then
     snapraid_sync_args=( "${snapraid_sync_args[@]}" -qqqq )
   fi
-
-  # Call SnapRAID Sync
   "${snapraid_binary_path}" "${snapraid_sync_args[@]}" sync
 }
 
+# Call snapraid scrub - suppress output if quiet option is used
 snapraid_scrub_cmd() {
-  # Define snapraid scrub arguments
   snapraid_scrub_args=( -c "${snapraid_config_file_path}" -v -p $scrub_percent -o $scrub_age -l $scrub_command_logfile ) 
- 
-  # Call Scrub Command with parameters from config file. Suppress all output --quiet option is selected.
   if [ $quiet_option == 1 ]; then
     snapraid_scrub_args=( "${snapraid_scrub_args[@]}" -qqqq )
   fi
@@ -358,20 +347,18 @@ unset_config_vars() {
   notification_hook1=
 }
 
-# Read Config File parameters in. If it is not present, exit
+# Read Config File parameters in - unset all variables 1st
 read_config_file() {
-  # Unset all Config File Variables
   unset_config_vars
 
   # Find script directory
   source_directory="$( dirname "$( readlink -f "${0}" )")"
 
   # Configuration Files are read in the following order of preference
-  # Exit if none of the below are found
   # 1 - Custom Config file if specified by the -f or --config options
   # 2 - /etc/snapraid-daily.conf
   # 3 - Same directory as script
-  # Use set -e to catch additional errors in the config file
+  # Exit if none of the above are found, use set -e to catch additional errors
   config_file0="${custom_config_file}"
   config_file1="/etc/snapraid-daily.conf"
   config_file2="${source_directory}""/snapraid-daily.conf"
@@ -410,7 +397,7 @@ read_config_file() {
   fi
 
   # Check for a Valid muttrc file and email address. If not found, disable the email functionality
-  if [ -z "${muttrc_path}" ] || [ ! -r "${muttrc_path}" ]; then
+  if [[ -z "${muttrc_path}" || ! -r "${muttrc_path}" ]]; then
     echo "WARNING: muttrc_path missing in config, not readable, or doesn't exist - No Emails will be sent"
     enable_emails=0
   elif [ -z "$email_address" ]; then
@@ -465,7 +452,7 @@ read_config_file() {
   # Check for disable_emails_on_success, default to no. Sanity check it's "yes" or "no"
   if [ -z "${disable_emails_on_success}" ]; then
     disable_emails_on_success="no"
-  elif [ "${disable_emails_on_success}" != "yes" ] && [ "${disable_emails_on_success}" != "no" ]; then
+  elif [[ "${disable_emails_on_success}" != "yes" && "${disable_emails_on_success}" != "no" ]]; then
     error "Specified invalid disable_emails_on_success in config - It should be either \"yes\" or \"no\""
   elif [ "${disable_emails_on_success}" == "yes" ]; then
     echo "INFO: Notification Emails & Hook(s) disabled on Success"
@@ -474,14 +461,14 @@ read_config_file() {
   # Check for include_diff_in_email, default to no. Sanity check it's "yes" or "no"
   if [ -z "${include_diff_in_email}" ]; then
     include_diff_in_email="no"
-  elif [ "${include_diff_in_email}" != "yes" ] && [ "${include_diff_in_email}" != "no" ]; then
+  elif [[ "${include_diff_in_email}" != "yes" && "${include_diff_in_email}" != "no" ]]; then
     error "Specified invalid include_diff_in_email in config file - It should be either \"yes\" or \"no\""
   fi
 
   # Check for sync_pre_hash, default to yes. Sanity check it's "yes" or "no"
   if [ -z "${sync_pre_hash}" ]; then
     sync_pre_hash="yes"
-  elif [ "${sync_pre_hash}" != "yes" ] && [ "${sync_pre_hash}" != "no" ]; then
+  elif [[ "${sync_pre_hash}" != "yes" && "${sync_pre_hash}" != "no" ]]; then
     error "Specified invalid sync_pre_hash in config file - It should be either \"yes\" or \"no\""
   fi
 
@@ -490,7 +477,7 @@ read_config_file() {
     force_zero="yes"
   elif [ -z "${force_zero}" ]; then
     force_zero="no"
-  elif [ "${force_zero}" != "yes" ] && [ "${force_zero}" != "no" ]; then
+  elif [[ "${force_zero}" != "yes" && "${force_zero}" != "no" ]]; then
     error "Specified invalid force_zero in config - It should be either \"yes\" or \"no\""
   fi
 
@@ -499,7 +486,7 @@ read_config_file() {
     force_empty="yes"
   elif [ -z "${force_empty}" ]; then
     force_empty="no"
-  elif [ "${force_empty}" != "yes" ] && [ "${force_empty}" != "no" ]; then
+  elif [[ "${force_empty}" != "yes" && "${force_empty}" != "no" ]]; then
     error "Specified invalid force_empty in config file - It should be either \"yes\" or \"no\""
   fi
 
@@ -508,7 +495,7 @@ read_config_file() {
     force_uuid="yes"
   elif [ -z "${force_uuid}" ]; then
     force_uuid="no"
-  elif [ "${force_uuid}" != "yes" ] && [ "${force_uuid}" != "no" ]; then
+  elif [[ "${force_uuid}" != "yes" && "${force_uuid}" != "no" ]]; then
     error "Specified invalid force_uuid in config file - It should be either \"yes\" or \"no\""
   fi
 
@@ -517,33 +504,32 @@ read_config_file() {
     force_nocopy="yes"
   elif [ -z "${force_nocopy}" ]; then
     force_nocopy="no"
-  elif [ "${force_nocopy}" != "yes" ] && [ "${force_nocopy}" != "no" ]; then
+  elif [[ "${force_nocopy}" != "yes" && "${force_nocopy}" != "no" ]]; then
     error "Specified invalid force_nocopy in config file - It should be either \"yes\" or \"no\""
   fi
 
   # Check for disable_update_check parameter. If undefined - default it to disabled
   if [ -z "${disable_update_check}" ]; then
     disable_update_check="no"
-  elif [ "${disable_update_check}" != "yes" ] && [ "${disable_update_check}" != "no" ]; then
+  elif [[ "${disable_update_check}" != "yes" && "${disable_update_check}" != "no" ]]; then
     error "Specified invalid disable_update_check in config file - It should be either \"yes\" or \"no\""
   fi
 
   # SMART Report (Off by default)
   if [ -z "${smart_report}" ]; then
     smart_report="no"
-  elif [ "${smart_report}" != "yes" ] && [ "${smart_report}" != "no" ]; then
+  elif [[ "${smart_report}" != "yes" && "${smart_report}" != "no" ]]; then
     error "Specified invalid smart_report in config file - It should be either \"yes\" or \"no\""
   fi
 
   # Spin Down Disks (Off by default)
   if [ -z "${spin_down_disks}" ]; then
     spin_down_disks="no"
-  elif [ "${spin_down_disks}" != "yes" ] && [ "${spin_down_disks}" != "no" ]; then
+  elif [[ "${spin_down_disks}" != "yes" && "${spin_down_disks}" != "no" ]]; then
     error "Specified invalid spin_down_disks in config file - It should be either \"yes\" or \"no\""
   fi
   
   # Check Start/End/Notfication hooks to see if they are defined
-  # correctly as executable files and how many of them there are
   get_number_of_hooks "start_hook"
   get_number_of_hooks "end_hook"
   get_number_of_hooks "notification_hook"
@@ -552,7 +538,6 @@ read_config_file() {
 # Check for Update via Github Page if not disabled in the config and if curl is installed
 check_for_update() {
   update_available="no"
-  # Extract numbers from version number to allow for direct comparison. Example: 1.5.4~beta3 -> 154
   if [ "${disable_update_check}" == "no" ] && is_installed curl; then
     local_script_version=$(echo "${version}" | sed 's/\.//g;s/~//;s/beta[0-9]*//')
     github_version=$(curl --silent --retry 3 "${github_version_file}")
@@ -571,7 +556,6 @@ check_for_update() {
 
 # Sanity Check for Dependencies
 check_dependencies() {
-  # Check for a SnapRAID custom binary, otherwise fall back to $(command -v snapraid)
   if [ -n "${snapraid_binary_path}" ]; then
     if [ ! -x "${snapraid_binary_path}" ]; then
       error "SnapRAID Binary Path: ${snapraid_binary_path} in Config File does not exist or is not Executable"
@@ -586,14 +570,12 @@ check_dependencies() {
     fi
   fi
 
-  # Check dependencies 
+  # Check all dependencies - Disable emails if mutt is not installed or in $PATH
   if ! is_installed grep; then error "grep command not found in \$PATH - Exiting..."; fi
   if ! is_installed tee; then error "tee command not found in \$PATH - Exiting..."; fi
   if ! is_installed awk; then error "awk command not found in \$PATH - Exiting..."; fi
   if ! is_installed sed; then error "sed command not found in \$PATH - Exiting..."; fi
   if ! is_installed mktemp; then error "mktemp command not found in \$PATH - Exiting..."; fi
-
-  # Check if Mutt is Installed, otherwise disable emails
   if ! is_installed mutt; then
     echo "WARNING: mutt command not found in \$PATH - No emails will be sent"
     enable_emails=0
@@ -644,10 +626,8 @@ print_help() {
   exit $success_code
 }
 
-# Function to Parse Input Arguments to the Script
+# Function to Parse Input Arguments to the Script - Unset variables 1st
 parse_arguments() {
-
-  # Unset Argument Variables
   sync_only=
   scrub_only=
   override_thresholds=
@@ -664,78 +644,77 @@ parse_arguments() {
 
       # Check for Sync Only
       -s|--sync-only)
-      sync_only=1
+        sync_only=1
       ;;
 
       # Check for Scrub Only
       -c|--scrub-only)
-      scrub_only=1
+        scrub_only=1
       ;;
 
       # Check for Override Thresholds
       -o|--override-thresholds)
-      override_thresholds=1
+        override_thresholds=1
       ;;
 
       # Check for Quiet Option
       -q|--quiet)
-      quiet_option=1
+        quiet_option=1
       ;;
 
       # Check if the default config is overriden
       -f|--config)
-      shift 1
-      if [ ! -f "${1}" ]; then
-        echo "Specified custom config file, but given file does not exist - Exiting"
-        echo ""
-        print_help
-      else
-        custom_config_file="${1}"
-      fi
+        shift 1
+        if [ ! -f "${1}" ]; then
+          echo "Specified custom config file, but given file does not exist - Exiting"
+          echo ""
+          print_help
+        else
+          custom_config_file="${1}"
+        fi
       ;;
 
       # Disable Touch
       -d|--disable-touch)
-      disable_touch=1
+        disable_touch=1
       ;;
 
       # Check for Help
       -h|--help)
-      print_help
+        print_help
       ;;
 
       # Check for Force Zero
       -fz|--force-zero)
-      force_zero_arg="yes"
+        force_zero_arg="yes"
       ;;
 
       # Check for Force Empty
       -fe|--force-empty)
-      force_empty_arg="yes"
+        force_empty_arg="yes"
       ;;
 
       # Check for Force UUID
       -fu|--force-uuid)
-      force_uuid_arg="yes"
+        force_uuid_arg="yes"
       ;;
 
       # Check for Force No-Copy
       -fn|--force-nocopy)
-      force_nocopy_arg="yes"
+        force_nocopy_arg="yes"
       ;;
 
       # Check for an Unrecognised Argument
       *)
-      echo "Invalid Input Argument:" "${1}"
-      echo ""
-      print_help
+        echo "Invalid Input Argument:" "${1}"
+        echo ""
+        print_help
       ;;
     esac
     shift 1
   done
 
-  # Check if any of the above argument variables were not defined and 
-  # set them to their default values
+  # Check if any of the above argument variables were not defined
   if [ -z $sync_only ]; then sync_only=0; fi
   if [ -z $scrub_only ]; then scrub_only=0; fi
   if [ -z $override_thresholds ]; then override_thresholds=0; fi
@@ -868,7 +847,7 @@ print_greeting() {
   fi
     
   # Print Start and Stop Hooks if Being Used
-  if [ -n "${start_hook1}" ] || [ -n "${end_hook1}" ] || [ -n "${notification_hook1}" ]; then
+  if [[ -n "${start_hook1}" || -n "${end_hook1}" || -n "${notification_hook1}" ]]; then
     log_to_email "Hooks:"
     if [ -n "${start_hook1}" ]; then
       log_to_email " * Start-Hook: YES ($N_start_hooks)"
@@ -921,8 +900,7 @@ initial_status_check() {
     exit $already_in_use_code
   
   # Scenario 2 - Check if the important parameters above are not defined
-  elif [[ -z $rehash_check || -z $unsynced_check || -z $bad_check || -z $touch_required_count ]]
-  then
+  elif [[ -z $rehash_check || -z $unsynced_check || -z $bad_check || -z $touch_required_count ]]; then
     log_to_email_time "Unexpected Status Output - Exiting..."
     log_to_email_time "Status Logfile is attached"
     log_to_email ""
@@ -948,12 +926,9 @@ initial_status_check() {
     clean_up_logfiles
     exit $error_code
 
-  # Scenario 5 - Check if a Sync was previously stopped while in progress
+  # Scenario 5 - Check if a Sync is unfinished, stop for scrub-only otherwise continue
   elif [ $unsynced_check != 0 ]; then
-    # Don't exit the if a sync is in progress - continue to sync
     found_unfinished_sync=1
-
-    # Although, if scrub-only is selected, exit and notify the user via email
     if [ $scrub_only -eq 0 ]; then
       log_to_email_time "Sync Already in Progress - Continuing..."
     else
@@ -966,7 +941,7 @@ initial_status_check() {
       exit $error_code
     fi
 
-  # Scenario 5 - None of the above checks found anything - Continue to Sync/Scrub
+  # Scenario 6 - None of the above checks found anything - Continue to Sync/Scrub
   else
     found_unfinished_sync=0
     log_to_email_time "No Issues Found in Initial Check"
@@ -986,7 +961,7 @@ initial_status_check() {
 
 # Touch Function - Run touch if required (and scrub only is not selected)
 run_touch_if_needed() {
-  if [[ $touch_required -eq 1 && $disable_touch -eq 0 ]]; then
+  if [[ $touch_required == 1 && $disable_touch == 0 ]]; then
     log_to_email "##############################"
     log_to_email "# SnapRAID-DAILY: Touch"
     log_to_email "##############################"
@@ -1142,7 +1117,7 @@ sync_array() {
     total_file_number=$(awk -F ":" '/^content_info:file:/ {print $3; exit}' "${sync_command_logfile}")
     equal_file_number=$(awk -F ":" '/^summary:equal:/ {print $3}' "${sync_command_logfile}")
 
-    # Check to see if Files were modified during the sync - Exit if so
+    # 1. Check to see if Files were modified during the sync - Exit if so
     if grep -qw "WARNING! You cannot modify files" $sync_command_logfile ; then 
       log_to_email_time "Sync - File(s) Modified During Sync"
       log_to_email_time "Sync Output Log is attached..."
@@ -1152,7 +1127,7 @@ sync_array() {
       clean_up_logfiles
       exit $files_modified_during_sync_code
 
-    # 1: Check for any undefined parameters - exit if so. Only consider hash errors if not using sync_pre_hash and force_nocopy
+    # 2: Check for any undefined parameters - exit if so. Only consider hash errors if not using sync_pre_hash and force_nocopy
     elif [[ -z "$io_errors" || -z "$data_errors" || -z "$soft_errors" || -z "${sync_exit_status}" || -z "${total_file_number}" || \
             -z "${equal_file_number}" || ("${sync_pre_hash}" == "yes" && "${force_nocopy}" == "no" && -z "${hash_errors}") ]]
     then
@@ -1164,7 +1139,7 @@ sync_array() {
       clean_up_logfiles
       exit $error_code
 
-    # 2: Exit if any of the number of errors above are non-zero or if the exit status is unexpected
+    # 3: Exit if any of the number of errors above are non-zero or if the exit status is unexpected
     elif [[ $io_errors != 0  ||  $data_errors != 0  ||  $soft_errors != 0  ||  "${sync_exit_status}" != "ok" || \
           ("${sync_pre_hash}" == "yes" && "${force_nocopy}" == "no" && $hash_errors != 0) ]]
     then
@@ -1183,13 +1158,12 @@ sync_array() {
       clean_up_logfiles
       exit $error_code
 
-    # 3: Sync Diff exit status reported no changes. Should be impossible to get to here though
-    # since sync is not called if changes are found
+    # 4: Sync Diff exit status reported no changes
     elif [ "${total_file_number}" == "${equal_file_number}" ]; then
       log_to_email_time "Found nothing to sync"
       log_to_email ""
 
-    # Otherwise if none of the above checks found anything - The sync was successful
+    # 5. Otherwise if none of the above checks found anything - The sync was successful
     else
       # Print Out the Changes to Email Output
       log_to_email_time "Sync was Successful"
@@ -1228,7 +1202,7 @@ scrub_array() {
     cp "${diff_command_logfile}" "${scrub_changes_log}" 
   fi
 
-  # Check if We have no Moved, Removed or Updated Files. Added or Copied are OK for scrubbing
+  # Check if there are no Moved, Removed, Relocated or Updated Files. Added or Copied are OK for scrubbing
   if [[ $number_removed == 0 && $number_updated == 0 && $number_moved == 0 && $number_relocated == 0 ]]; then
     # Array is still up to date - proceeding to scrub
     log_to_email_time "Array is Up-to-Date - Proceeding"
@@ -1258,15 +1232,14 @@ scrub_array() {
     scrub_soft_errors=$(awk -F ":" '/^summary:error_soft:/ {print $3}' "${scrub_command_logfile}")
     scrub_exit_status=$(awk -F ":" '/^summary:exit/ {print $3}' "${scrub_command_logfile}")
 
-    # Check if Nothing was found to scrub
+    # 1: Check if Nothing was found to scrub
     if grep -qw "Nothing to scrub" "${scrub_command_logfile}"; then
       log_to_email_time "Found Nothing to Scrub"
       log_to_email ""
       nothing_to_scrub=1
 
-    # 1: Check if any of the above error counts or exit status are undefined
-    elif [[ -z $scrub_io_errors || -z $scrub_data_errors || -z $scrub_soft_errors || -z "${scrub_exit_status}" ]]
-    then
+    # 2: Check if any of the above error counts or exit status are undefined
+    elif [[ -z $scrub_io_errors || -z $scrub_data_errors || -z $scrub_soft_errors || -z "${scrub_exit_status}" ]]; then
       log_to_email_time "Unexpected output from Scrub - Please Investigate"
       log_to_email_time "Scrub Output Log is attached..."
       log_to_email ""
@@ -1275,9 +1248,8 @@ scrub_array() {
       clean_up_logfiles
       exit $error_code
 
-    # 2: Check if any of the number of errors in the counts above are non-zero
-    elif [[ $scrub_io_errors != 0 || $scrub_data_errors != 0 || $scrub_soft_errors != 0 || "${scrub_exit_status}" != "ok" ]]
-    then
+    # 3: Check if any of the number of errors in the counts above are non-zero
+    elif [[ $scrub_io_errors != 0 || $scrub_data_errors != 0 || $scrub_soft_errors != 0 || "${scrub_exit_status}" != "ok" ]]; then
       log_to_email_time "Scrub Log Reports Error(s) - Please Investigate"
       log_to_email " * I/O Errors:" $scrub_io_errors
       log_to_email " * Data Errors:" $scrub_data_errors
@@ -1290,7 +1262,7 @@ scrub_array() {
       clean_up_logfiles
       exit $error_code
 
-    # Otherwise the scrub was successful
+    # 4: Otherwise the scrub was successful
     else
       log_to_email_time "Scrub was successful"
       log_to_email " * I/O Errors:" $scrub_io_errors
@@ -1303,7 +1275,6 @@ scrub_array() {
     fi
   else
     # Array is not up to date and can't be scrubbed without the risk of an error
-    # Exit the Script with a warning
     log_to_email_time "Array not up-to-date - Sync Required"
     log_to_email_time "Changes detected are:"
     log_to_email " * Equal:" $number_equal
@@ -1312,7 +1283,7 @@ scrub_array() {
     log_to_email " * Updated:" $number_updated
     log_to_email " * Moved:" $number_moved
     log_to_email " * Copied:" $number_copied
-    log_to_email " * Relocated:" $number_copied
+    log_to_email " * Relocated:" $number_relocated
     log_to_email " * Restored:" $number_restored
     log_to_email_time "Cannot Proceed with Scrub - Stopping"
     log_to_email_time "Diff Command Logfile is attached."
@@ -1324,13 +1295,11 @@ scrub_array() {
   fi
 }
 
-# Get the number of start, end and notification hooks defined in
-# the configuration file
+# Get the number of start, end and notification hooks defined in the configuration file
 get_number_of_hooks() {
   local N_hooks=0
 
-  # Loop Through Defined Hooks in Config File
-  # to find out how many are defined
+  # Loop Through Defined Hooks in Config File to find out how many are defined
   for ((i=1; i<=max_hooks+1; i++)); do
     local hook="${1}"$i
 
@@ -1348,8 +1317,7 @@ get_number_of_hooks() {
         elif [ "${1}" == "notification_hook" ]; then
           N_notification_hooks=$max_hooks
         fi
-        # Return 0 to exit the function and avoid the if/elif
-        # setting the number of hooks below
+        # Return 0 to exit the function and avoid setting the number of hooks below
         return 0
       fi
 
