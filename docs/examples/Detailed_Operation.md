@@ -16,9 +16,11 @@ The script will then check for an updated version on the Github page if the para
 Next checks are carried out for the script dependencies: awk, grep, sed, mktemp, tee and SnapRAID itself. It will exit if any of these
 are not present.
 
-Next, a check on the first defined content file in the SnapRAID config (**/etc/snapraid.conf**) is checked to see if it exists and is
-writable. This is to ensure the script is being ran as the right user, and serves as a good sanity check to see if the content files exist and
-are writable.
+Next, a check is performed on all of the config files that are defined in the SnapRAID config (**/etc/snapraid.conf**). If any of them are
+not found or not writable the script will exit with an error and notify the user. This is useful to check if something unexpected has gone on like one
+of the disks dropping offline etc. Note that the parity files are not checked for, the reasoning being not to wake the parity disks
+from standby if no changes are found and thus a sync is not required if the sync-only argument is used. Given that the script always
+runs **snapraid diff**, this will wake all of the data disks anyway.
 
 One could check all config files exist,  but given that there is usually a copy on each disk, that would mean potentially
 waking all the disks from standby which would be undesirable if a sync/scrub is not ran because of a subsequent issue.
