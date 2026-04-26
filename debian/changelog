@@ -1,3 +1,43 @@
+snapraid-daily (1.6.3-1) stable; urgency=medium
+
+  * Implemented a check for errors during the sync pre-hash
+    step, but only if one is using the sync_pre_hash option, as
+    previously errors during the sync pre-hash step were not
+    considered.
+
+  * Added command line arguments to directly run all of the
+    supported extra sync arguments. Useful for unexpected edge
+    cases that require one of these arguments to fix.
+    - force_zero
+    - force_empty
+    - force_uuid
+    - force_nocopy
+
+  * Added printout of error counts for sync and scrub to email
+    reports for successful runs.
+
+  * In all places where SnapRAID log-tags are analyzed, removed
+    grep/sed/awk combinations in favor of awk only.
+
+  * Changed method of adding differences to email log also to
+    just awk from grep/sed pipes.
+
+  * Added check on number relocated to see if a sync is required
+    1st when using the -c / --scrub-only option.
+
+  * Removed the usage of seq for running all start, end and
+    notification hooks.
+
+  * Included the list of differences on the logfile passed to the
+    notification hook(s). This allows including the file
+    differences in things like emails sent using the Apprise hook.
+    Previously the differences were only present in the main
+    email report.
+
+  * Minor Documentation improvements - Manpages, README.
+
+ -- Mark <mark9000@fastmail.org>  Sun, 26 Apr 2026 15:48:19 +0100
+
 snapraid-daily (1.6.2-1) stable; urgency=medium
 
   * Added a check for ALL content files - @talltent7105 [#11]
