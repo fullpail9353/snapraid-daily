@@ -21,8 +21,8 @@ Here is an example notification using the Apprise Hook to a Self-Hosted **ntfy**
 
 # Introduction 
 
-Thank you for your interest in this script! SnapRAID is very good software. It is intended to be an all-in-one script for the automation of all essential
-SnapRAID functions and do it in a simple manner.
+Thank you for your interest in this script! SnapRAID is very good software. This script is intended to be an all-in-one script for the automation of all essential
+SnapRAID functions on Linux and do it in a simple manner that is easy to get started with.
 
 There are other scripts out there that essentially do the same thing. However, none of them had exactly had the features the author wanted.
 
@@ -240,16 +240,22 @@ If an invalid argument is specified, the script will exit.
 
 # Installation
 
+Note that versions 1.6.0 and above of the script are intended to be used with **SnapRAID** versions 14.0 and above. For SnapRAID versions of
+13.0 and below, up to version 1.5.8 of the script can be used. See the releases page here:
+
+* [https://github.com/zoot101/snapraid-daily/releases](https://github.com/zoot101/snapraid-daily/releases)
+
+For versions of **SnapRAID** higher than version 14.0, one can get access to packages on the **SnapRAID** website here - [https://www.snapraid.it](https://www.snapraid.it)
+
 There are two ways to install and use this script - via the provided Debian Package for Debian and its derivatives or manually.
 
 ## Package Installation
 
-A package is provided for Debian and its derivatives. Note that the author has tested this most on Debian itself (Bookworm and Trixie), and
+A package is provided for Debian and its derivatives. Note that the author has tested this most on Debian itself (Bullseye, Bookworm and Trixie), and
 also tested it out on Linux Mint and Ubuntu. It should work on other Debian based distros ok too. The script has also been tested on Fedora via manual
 installation.
 
 Its highly recommended to use the package if one is running a Debian based distro so the dependencies are handled automatically.
-
 To install the package download it from the releases page below and do the following. It's better to use **apt** rather than **dpkg** so the dependencies will be
 automatically installed.
 
@@ -287,7 +293,6 @@ so its recommended to stick with what is on the releases page instead.
 # Extract the Archive
 unzip snapraid-daily-1.6.3.zip       # For the zip file
 tar xvf snapraid-daily-1.6.3.tar.gz  # For the tar.gz file
-
 cd snapraid-daily
 
 # Install the main script
@@ -309,9 +314,9 @@ sudo cp ./systemd-files/snapraid-*.timer /etc/systemd/system/
 # a non-root user. Can be skipped if one is happy to run the
 # script as root
 sudo mkdir /etc/systemd/system/snapraid-.service.d/
-sudo echo "[Service]" | sudo tee /etc/systemd/system/snapraid-.service.d/user.conf
-sudo echo "User=your_username" | sudo tee --append /etc/systemd/system/snapraid-.service.d/user.conf
-sudo echo "Group=your_group" | sudo tee --append /etc/systemd/system/snapraid-.service.d/user.conf
+echo "[Service]" | sudo tee /etc/systemd/system/snapraid-.service.d/user.conf
+echo "User=your_username" | sudo tee --append /etc/systemd/system/snapraid-.service.d/user.conf
+echo "Group=your_group" | sudo tee --append /etc/systemd/system/snapraid-.service.d/user.conf
 
 # Lastly - Reload Systemd
 sudo systemctl daemon-reload
@@ -321,7 +326,11 @@ Next ensure all dependencies are installed:
 
 * grep, awk, sed, mktemp, tee (Available on pretty much every linux based system)
 * mutt
-* SnapRAID (This is left up to the user and not considered here)
+* SnapRAID
+
+For **SnapRAID**, packages that can be used with most distors for the latest version is on the official **SnapRAID** website here:
+
+* [https://www.snapraid.it](https://www.snapraid.it)
 
 If on Debian, one can do:
 ```bash
@@ -354,19 +363,21 @@ are present in this file.
 1. MuttRC File Path for Notification Emails    
 2. Email Address for Notification Emails    
 3. Deletion Threshold    
-4. Moved Threshold
-5. Updated Threshold
+4. Moved Threshold   
+5. Updated Threshold   
 6. Sync Pre Hash   
 7. Scrub Percentage     
 8. Scrub Age     
 
 See the sample here:
-* [https://github.com/zoot101/snapraid-daily/tree/main/docs/sample-config/snapraid-daily.conf](https://github.com/zoot101/snapraid-daily/tree/main/docs/sample-config/snapraid-daily.conf)
 
-If installed via the debian package, a sample configuration file is already placed at the 1st location above (/etc/snapraid-daily.conf) that can be
+* [https://github.com/zoot101/snapraid-daily/blob/main/docs/examples/snapraid-daily.conf](https://github.com/zoot101/snapraid-daily/blob/main/docs/examples/snapraid-daily.conf)
+
+If installed via the Debian package, a sample configuration file is already placed at the 1st location above (/etc/snapraid-daily.conf) that can be
 edited directly by the user.
 
 A manual entry is also provided for the config file here:
+
 * `man snapraid-daily.conf`
 
 As mentioned before, overriding the default config file can be accomplished by using the **-f, \--config [PATH-TO-CONFIG]** as an input argument
@@ -380,7 +391,7 @@ This can also be used as a template to generate the optimum config file in  the 
 
 * `/etc/snapraid-daily.conf`
 
-Finally if the script cannot find any configuration file it will continue with the defaults - see the below:
+Finally if the script cannot find any configuration file it will continue ALL defaults - see the below section.
 
 ## Config File Contents
 
@@ -411,11 +422,10 @@ pass it to the script with the **-f, --config** option.
 
 ### muttrc\_path
 
-This is the path for the muttrc file that is used for sending email notifications. No emails are sent if this is omitted.
+This is the path for the mutt configuration file that is used for sending email notifications. No emails are sent if this is omitted.
 The default is empty, whereby no emails are sent.
 
-See the notes provided in the docs directory here to set up the email
-notifications.
+See the notes provided in the docs directory here to set up the email notifications.
 
 * [https://github.com/zoot101/snapraid-daily/tree/main/docs/muttrc-examples](https://github.com/zoot101/snapraid-daily/tree/main/docs/muttrc-examples)
 
@@ -440,12 +450,12 @@ disable email notifications.
 If the number of files deleted since the last sync is found to be greater than this number, then the script
 will exit and notify the user via email. Must be a postive number. The default is **100** if omitted or commented out.
 
-On the other hand, to disable permanently and sync every time regardless of the number deleted, set to 0.
+On the other hand, to disable permanently and sync every time regardless of the number of deleted files, set to 0.
 
 ### moved\_threshold
 
 As above, but for files moved. Must be a positive number. The default is **100** if omitted or commented out. As before, to disable permanently and
-sync every time regardless of the number moved, set to 0.
+sync every time regardless of the number of moved files, set to 0.
 
 ### updated\_threshold
 
@@ -454,7 +464,9 @@ of updated files. If omitted or commented out, the default is **100**.
 
 ### sync\_pre\_hash
 
-Allows disabling of the use of the "-h" or "--pre-hash" option for SnapRAID during sync operations. This will speed up sync operations but forfeit the
+By default the script will call **SnapRAID** with the additional Pre-Hash option during sync operations. 
+
+Allows disabling of the use of the "-h" or "\--pre-hash" option for SnapRAID during sync operations. This will speed up sync operations but forfeit the
 added safeguard that the extra preliminary hash operation provided. Set to **no** to disable. On by default if omitted. It is recommended to leave it
 on.
 
@@ -464,7 +476,7 @@ The percentage of the array to scrub - should be a number between 1 and 100. The
 
 ### scrub\_age
 
-The age of files in days to scrub. Should be a standard posive number. The default is **21** (or 21 days).
+The age of files in days to scrub. Should be a standard positive number. The default is **21** (or 21 days).
 
 ## Additional Options
 
@@ -511,8 +523,8 @@ of how it looks.
 ### force\_zero
 
 By default during **sync**, if SnapRAID encounters a file of zero size that was not previously of zero size, it will report this as
-an error and exit the sync. This is possible to happen during a system crash in Linux systems, so is **NOT RECOMMENDED** to use. This option
-causes SnapRAID to continue to sync anyway in this condition.
+an error and exit the sync. This is possible to happen during a system crash in Linux systems, so is **NOT RECOMMENDED** to use normally. This
+option causes SnapRAID to continue to sync anyway in this condition.
 
 Set to \"yes\" to use, leave commented out or set to \"no\" to disable.
 
@@ -559,7 +571,7 @@ If, for example **SnapRAID** itself is installed from outside the offical repos 
 **PATH**. If this is the case, an alternative path to the **SnapRAID** binary can be specified here. Uncomment and set the path to the alternative
 location of the binary if required.
 
-By default if this option is not used, the output of the command **which snapraid** is used to get the path to the **SnapRAID** binary.
+By default if this option is not used, the output of the command **command -v snapraid** is used to get the path to the **SnapRAID** binary.
 
 ### disable\_update\_check
 
@@ -574,21 +586,21 @@ to the email that is sent when the script completes. An example is shown below:
 
 ```
 ##############################
-# SnapRAID-DAILY Version: 1.5.3
+# SnapRAID-DAILY Version: 1.6.3
 ##############################
 # Update Available at https://github.com/zoot101/snapraid-daily/releases
 ##############################
-Initialized at 15:09:12 on 19/10/2025
+Initialized at 15:09:12 on 25/04/2026
  * Hostname: nas.example.org
  * Host OS: Debian GNU/Linux 13 (trixie)
- * SnapRAID Version: 12.4 
+ * SnapRAID Version: 14.4 
 ```
 
 Comment out and set to yes if you wish to disable this feature.
 
 ### smart\_report
 
-Get SnapRAID to generate its SMART report and add it to the email. This calls "snapraid smart" and records its output in the email
+Get SnapRAID to generate its SMART report and add it to the email. This calls **snapraid smart** and records its output in the email
 notification that is sent. This either requires the script to be ran as root or for sudo to be set up to call **snapraid smart** as a 
 non-root user. A sample output in the notification email looks like this:
 
@@ -601,12 +613,12 @@ SnapRAID SMART report:
    Temp  Power   Error   FP Size
       C OnDays   Count        TB  Serial           Device    Disk
  -----------------------------------------------------------------------
-     25   1797       0  15%  2.0  WD-WCC4M6UXJ7AD  /dev/sdc  media1
-     25   1060       0  12%  3.0  WD-WCC4N4NNR3XR  /dev/sdd  media2
-     26   1759       0  14%  2.0  WD-WCC4N0430093  /dev/sdb  media3
-     27    597       0   7%  4.0  ZW623Z5S         /dev/sda  media4
-     22   1432       0   6%  4.0  ZGY9GHA0         /dev/sde  parity
-     34     40       0  SSD  0.5  241801802914     /dev/sdf  -
+     25   1797       0  15%  2.0  WD-WCC4M7UXJ8AD  /dev/sdc  media1
+     25   1060       0  12%  3.0  WD-WCC4N8NNR7XR  /dev/sdd  media2
+     26   1759       0  14%  2.0  WD-WCC4N1432093  /dev/sdb  media3
+     27    597       0   7%  4.0  ZW423Z1S         /dev/sda  media4
+     22   1432       0   6%  4.0  ZGY0GHA9         /dev/sde  parity
+     34     40       0  SSD  0.5  241431803714     /dev/sdf  -
 
 The FP column is the estimated probability (in percentage) that the disk
 is going to fail in the next year.
@@ -616,14 +628,13 @@ Probability that at least one disk is going to fail in the next year is 44%.
 
 If one wishes to run the script as a non-root user but still generate the SMART report, **sudo** can be set up by adding the following to a file
 in **/etc/sudoers.d/** with the following line. Or alternatively, by using the **visudo** command and adding the same below line. Where "username" is
-the user the script will run as. Change the path to the snapraid binary if different.
+the user the script will run as. Change the path to the **SnapRAID** binary if different.
 
 ```
 username ALL=(root) NOPASSWD:/usr/bin/snapraid
 ```
 
-Then, add the user to the sudo group like so. It's possible the group name
-is different on other distros.
+Then, add the user to the sudo group like so. It's possible the group name is different on other distros.
 
 ```
 usermod -aG sudo username
@@ -635,7 +646,7 @@ reference. Comment out and set to yes to enable this feature. Off by default.
 ### spin\_down\_disks
 
 Get SnapRAID to spin down all Hard Disks after the script has completed all operations. As above, this requires the script to
-be ran as root or for sudo to be set up to call "snapraid down" as a non-root user (see above method). Comment out and set to "yes" to enable this
+be ran as root or for sudo to be set up to call **snapraid down** as a non-root user (see above method). Comment out and set to "yes" to enable this
 feature. Off by default.
 
 The output in the notification email looks like this:
@@ -672,7 +683,7 @@ start_hook2="/path/to/hook2"
 start_hookN="/path/to/hook5"
 ```
 
-Recall that it is required that all of the above hooks be executable.
+Note that it is required that all of the above hooks be executable.
 
 Start with **start_hook1** and continue to **start_hookN** where N is the number of hooks that are desired. Up to 5 are supported.
 
@@ -683,7 +694,7 @@ Comment out if not using.
 ### end\_hook1-N
 
 Specify a path to a number of hook scripts that are called when the script completes all sync/scrub operations and before sending the final notification email. They are also
-called if the script exits in an error condition. Up to 5 are supported. All must be executable.
+called if the main script exits in an error condition. Up to 5 are supported. All must be executable.
 
 Like the start hook(s) above, these are primarily intended to re-start a list of services that have been previously stopped and that could interact with files in the **SnapRAID** array
 and thus cause sync/scrub operations to exit in an error while the script is running. However again they could be used for anything else as desired.
@@ -798,7 +809,7 @@ See also an example that uses the hook scripts from the SnapRAID-DAILY-Hooks rep
 
 ## Setting up Email Notifications
 
-The main notification method the script uses is emails. In the opinion of the author, email is be best way to get detailed information.
+The main notification method the script uses is email which is done with **mutt**. In the opinion of the author, email is be best way to get detailed information.
 
 A valid muttrc configuration is required to send email notifications.
 
@@ -833,7 +844,7 @@ If one installed using the manual procedure above, the above files are in **/etc
 These files do the following:
 
 1. **snapraid-daily.service** : Runs a sync, then a scrub (the default).    
-2. **snapraid-sync.service** : Syncs the array only (uses the -s argument).    
+2. **snapraid-sync.service**  : Syncs the array only (uses the -s argument).    
 3. **snapraid-scrub.service** : Scrubs the array only (uses the -c argument).    
 
 These are intended to cover both of the following cases:
@@ -847,7 +858,7 @@ Firstly, it's a good idea to test the service works correctly by starting the de
 sudo systemctl start snapraid-daily.service
 ```
 
-Then, to get detailed information one can use **journalctl** to inspect the logs.
+Then, to get detailed information one can use **journalctl** to inspect the logs like so:
 
 ```bash
 sudo journalctl -u snapraid-daily.service --since today
@@ -855,7 +866,8 @@ sudo journalctl -u snapraid-daily.service --since today
 
 If the service runs without issue, the next step is to enable the timers to run the corresponding service automatically.
 
-To enable any one of the timers do the below - enabling the services is not required, since they are configured as oneshots and are not intended to be ran at start up. 
+To enable any one of the timers do the below - enabling the services is not required, since they are configured as the "oneshot" type and are not intended
+to be ran at start up. 
 
 If one wishes to run the script with the default behaviour (Run a sync, followed by a scrub), then start and enable the **snapraid-daily.timer** file as below.
 
@@ -875,12 +887,12 @@ sudo systemctl enable snapraid-scrub.timer
 
 The default timer run times are :
 
-* **snapraid-sync.timer** : Twice daily - At 06:00 and 18:00    
+* **snapraid-sync.timer**  : Twice daily  - At 06:00 and 18:00    
 * **snapraid-scrub.timer** : Twice weekly - Mondays and Fridays at 21:00    
-* **snapraid-daily.timer** : Daily - At 06:00    
+* **snapraid-daily.timer** : Daily        - At 06:00    
 
 To adjust any of these, if the script was installed by the package, it's best to create a seperate copy of the timer file in **/etc/systemd/system/** like below,
-and then to edit that file directly. 
+and then to edit that file directly - like so: 
 
 ```bash
 # If installed by the package - create a copy like so:
@@ -892,7 +904,7 @@ upgrading to new versions of the package installation.
 
 On the other hand if one installed via the manual procedure above, then the timer file(s) can be edited directly in **/etc/systemd/system**.
 
-An example timer file that shows different options on how to specify when it will 
+An example timer file that shows different options on how to specify when and how often the script will 
 run is [HERE](https://github.com/zoot101/snapraid-daily/tree/main/docs/systemd-examples/sample-timer.timer) and can be used as example to change the default runtimes
 if desired.
 
@@ -991,7 +1003,8 @@ Up to 5 seperate notification hooks are supported.
 
 The notification hook(s) can be used instead of the standard email notifications via **mutt** or used in addition to them.
 
-A bash script is probably what is best to use here, but the hooks can be anything that is ran from the command line - it doesn't have to be a bash script per se.
+A bash script is probably what is best to use here, but the hooks can be anything that is ran from the command line - Python scripts, Perl scripts or executables
+should work just fine also.
 
 If the **SnapRAID-DAILY** script ends in success, the notification hooks are called one-by-one on the command line like so:
 
@@ -1040,7 +1053,7 @@ If any variables are required to be passed into the notification hook(s), they c
 export var1="whatever"
 ```
 
-See the package **SnapRAID-DAILY-Hooks** for some additional hook scripts that integrate  alongside the main script for alternative notification methods and start/end hooks.
+As mentioned above, see the **SnapRAID-DAILY-Hooks** Repository for some additional hook scripts that integrate alongside the main script for alternative notification methods and start/end hooks.
 
 An example config file that uses the start, end and notification hooks can be found here:
 
@@ -1055,7 +1068,7 @@ A check is carried out for a non-zero (error) return code on the start hook(s), 
 not however carried out on the end hook(s) to ensure the script runs to end and the final notification is sent, however the printout of the overall result will be changed to "WARNING(S)"
 in this case.
 
-These hooks are primarily intended to start and stop a list of services that can access files in the **SnapRAID** array to allow **SnapRAID** to run without the risk of files being
+These hooks are primarily intended to start and stop a list of services or Docker containers that can access files in the **SnapRAID** array to allow **SnapRAID** to run without the risk of files being
 modified while in use, but could be used for anything else.
 
 The start hook(s) are executed after the main script has completed all of its initial checks and just before it starts to run **SnapRAID**
@@ -1133,7 +1146,7 @@ case "$1" in
 esac
 ```
 
-An example config file that uses the start,end and notification hooks can be found here:
+An example config file that uses the start, end and notification hooks can be found here:
 
 * [https://github.com/zoot101/snapraid-daily/blob/main/docs/examples/snapraid-daily.conf](https://github.com/zoot101/snapraid-daily/blob/main/docs/examples/snapraid-daily.conf)
 
@@ -1280,11 +1293,11 @@ SnapRAID SMART report:
    Temp  Power   Error   FP Wear Size
       C OnDays   Count     Level   TB  Serial           Device    Disk
  -----------------------------------------------------------------------
-     44     24       -   4%    -  4.0  WD-WCC7K7JZZH59  /dev/sda  media1
-     45   1096       -   4%    -  3.0  WD-WCC4N4NNR3XR  /dev/sdd  media2
-     44   1941       -   4%    -  2.0  WD-WCC4N0430093  /dev/sdb  media3
-     44    779       -   5%    -  4.0  ZW623Z5S         /dev/sdc  media4
-     39   1615       -   5%    -  4.0  ZGY9GHA0         /dev/sde  parity
+     44     24       -   4%    -  4.0  WD-WCC8Z7JAZH37  /dev/sda  media1
+     45   1096       -   4%    -  3.0  WD-WCC1N9NNR3XZ  /dev/sdd  media2
+     44   1941       -   4%    -  2.0  WD-WCC3N0372193  /dev/sdb  media3
+     44    779       -   5%    -  4.0  ZW733X0S         /dev/sdc  media4
+     39   1615       -   5%    -  4.0  ZGY1XHA7         /dev/sde  parity
 
 The FP column is the estimated probability (in percentage) that the disk
 is going to fail in the next year.
@@ -1365,12 +1378,12 @@ add:disk3:/path/to/file9.txt
 add:disk3:/path/to/file10.txt
 
 Removed Files: 1
-remove:disk5:/path/to/file10.txt
+remove:disk5:/path/to/file11.txt
 
 Updated Files: 3
-update:disk3:/path/to/file11.txt: 7723 1776027517.223118319 -> 8210 1776540763.451154064
 update:disk3:/path/to/file12.txt: 7723 1776027517.223118319 -> 8210 1776540763.451154064
 update:disk3:/path/to/file13.txt: 7723 1776027517.223118319 -> 8210 1776540763.451154064
+update:disk3:/path/to/file14.txt: 7723 1776027517.223118319 -> 8210 1776540763.451154064
 
 Moved Files: 0
 
@@ -1393,7 +1406,7 @@ or notes on how to use cron instead of systemd have a look here.
 * [https://github.com/zoot101/snapraid-daily/tree/main/docs/systemd-examples/sample-timer.timer](https://github.com/zoot101/snapraid-daily/tree/main/docs/systemd-examples/sample-timer.timer)
 * [https://github.com/zoot101/snapraid-daily/tree/main/docs/systemd-drop-ins](https://github.com/zoot101/snapraid-daily/tree/main/docs/systemd-drop-ins)
 * [https://github.com/zoot101/snapraid-daily/tree/main/docs/snapraid-stuff](https://github.com/zoot101/snapraid-daily/tree/main/docs/snapraid-stuff)
-* [https://github.com/zoot101/snapraid-daily/tree/main/docs/sample-config](https://github.com/zoot101/snapraid-daily/tree/main/docs/sample-config)
+* [https://github.com/zoot101/snapraid-daily/blob/main/docs/examples/snapraid-daily.conf](https://github.com/zoot101/snapraid-daily/blob/main/docs/examples/snapraid-daily.conf)
 * [https://github.com/zoot101/snapraid-daily/tree/main/docs/muttrc-examples](https://github.com/zoot101/snapraid-daily/tree/main/docs/muttrc-examples)
 * [https://github.com/zoot101/snapraid-daily/tree/main/docs/cron-examples](https://github.com/zoot101/snapraid-daily/tree/main/docs/cron-examples)
 * [https://github.com/zoot101/snapraid-daily/tree/main/docs/examples/hook-example](https://github.com/zoot101/snapraid-daily/tree/main/docs/examples/hook-example)
@@ -1440,7 +1453,7 @@ In that case, to remove the dependency - do the following:
 nano debian/control # Or whichever edit you prefer
 
 # And delete the following line:
- snapraid (>=11.0),
+ snapraid (>=14.0),
 
 # Then rebuild the package as above
 tar cfJ ../snapraid-daily_1.6.3.orig.tar.xz --exclude="./debian" .
