@@ -1259,7 +1259,6 @@ Run-Log is Below:
  * I/O Errors: 0
  * Data Errors: 0
  * Soft Errors: 0
- * Hash Errors: 0
  * Exit Status: ok
 07:24:20 : Scrubbed 15% older than 2 days
 
