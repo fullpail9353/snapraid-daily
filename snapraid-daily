@@ -1044,7 +1044,7 @@ check_array_for_changes_and_thresholds() {
         log_to_email " * Deletion Threshold: Disabled" 
       fi
       if [ $moved_threshold -gt 0 ]; then
-      log_to_email " * Moved:" $moved_threshold
+      log_to_email " * Moved Threshold:" $moved_threshold
       else
         log_to_email " * Moved Threshold: Disabled"
       fi
