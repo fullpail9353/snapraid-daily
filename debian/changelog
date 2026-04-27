@@ -1,3 +1,19 @@
+snapraid-daily (1.6.4-1) stable; urgency=medium
+
+  * Consider both moved & relocated when computing the number
+    of moves to compare against the moved threshold - Closes [#13]
+    - Added in SnapRAID versions 14.0+
+    - Moved refers to moves where the inode is different,
+      typically move operations within the same disk
+    - Relocated refers to operations where the inode is
+      different and the original is removed, typically moves
+      between different disks.
+    - Now when the moved number is being calculated, the
+      moved & relocated number are added, as this is what the
+      majority of people would consider moved files to mean.
+
+ -- Mark <mark9000@fastmail.org>  Mon, 27 Apr 2026 14:26:31 +0100
+
 snapraid-daily (1.6.3-1) stable; urgency=medium
 
   * Implemented a check for errors during the sync pre-hash
