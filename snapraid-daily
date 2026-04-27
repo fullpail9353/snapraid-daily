@@ -6,7 +6,7 @@
 ###################################################
 
 # VERSION
-version="1.6.3"
+version="1.6.4"
 
 ###################################################
 # VARIABLES
@@ -1026,14 +1026,15 @@ check_array_for_changes_and_thresholds() {
       log_to_email_time "Proceeding to sync regardless..."
 
     # Check For Either Threshold being greater than zero AND exceeded...
+    # For moves consider both the number moved AND relocated
     elif [[ ($number_removed -gt $deletion_threshold && $deletion_threshold -gt 0)  || \
-            ($number_moved -gt $moved_threshold && $moved_threshold -gt 0) || \
+            ($((number_moved+number_relocated)) -gt $moved_threshold && $moved_threshold -gt 0) || \
             ($number_updated -gt $updated_threshold && $updated_threshold -gt 0) ]]
     then 
       log_to_email ""
       log_to_email_time "One or more Thresholds Exceeded"
       log_to_email " * Deleted: "$number_removed
-      log_to_email " * Moved: "$number_moved
+      log_to_email " * Moved: "$((number_moved+number_relocated))
       log_to_email " * Updated: "$number_updated
 
       # Print Whether Thresholds have been disabled or not
@@ -1043,7 +1044,7 @@ check_array_for_changes_and_thresholds() {
         log_to_email " * Deletion Threshold: Disabled" 
       fi
       if [ $moved_threshold -gt 0 ]; then
-      log_to_email " * Moved Threshold:" $moved_threshold
+      log_to_email " * Moved:" $moved_threshold
       else
         log_to_email " * Moved Threshold: Disabled"
       fi
@@ -1408,11 +1409,11 @@ run_end_hooks() {
       fi
 
       # Check all hooks have been completed
-      if [ $i == $N_end_hooks ] && [ $error_count == 0 ]; then
+      if [[ $i == $N_end_hooks && $error_count == 0 ]]; then
         log_to_email_time "All End Hooks completed successfully"
         log_to_email ""
         end_hook_errors="no"
-      elif [ $i == $N_end_hooks ] && [ $error_count != 0 ]; then
+      elif [[ $i == $N_end_hooks && $error_count != 0 ]]; then
         log_to_email_time "One or more errors running End Hook(s)"
         log_to_email ""
         end_hook_errors="yes"
@@ -1627,8 +1628,7 @@ notify_of_success() {
     send_email "${success_subject}"
   fi
 
-  # Call the Custom Notification Hook Script if one was given - Use the Logfile
-  # without the differences added
+  # Call the Custom Notification Hook Script if one was given
   run_notification_hooks "${success_subject}" "${main_logfile}"
 }
 
@@ -1654,8 +1654,7 @@ notify_of_warning() {
     send_email "${1}"
   fi
 
-  # If a Custom Notification Hook is present - Call it here. Use the Logfile
-  # without the differences added
+  # If Custom Notification Hook are present - Call them here
   run_notification_hooks "${1}" "${main_logfile}" "${2}"
 }
 
